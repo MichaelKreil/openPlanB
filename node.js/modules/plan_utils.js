@@ -52,6 +52,8 @@ function decodeFile(file, outputFolder) {
 exports.decodeFiles = decodeFiles;
 exports.getAllPlanFiles = getAllPlanFiles;
 
+
+
 function decodePlanW(filename, outputFile) {
 	var header = {unknown:[]};
 	
@@ -96,8 +98,8 @@ function decodePlanW(filename, outputFile) {
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
-	exportCSV(outputFile, '1', data1);
-	exportCSV(outputFile, '2', data2);
+	exportTSV(outputFile, '1', data1);
+	exportTSV(outputFile, '2', data2);
 }
 
 function decodePlanB(filename, outputFile) {
@@ -151,10 +153,11 @@ function decodePlanB(filename, outputFile) {
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
-	exportCSV(outputFile, '1', data1);
-	exportCSV(outputFile, '2', data2);
+	exportTSV(outputFile, '1', data1);
+	exportTSV(outputFile, '2', data2);
 }
 
+// Noch nicht fertig:
 function decodePlanBZ(filename, outputFile) {
 	var header = {unknown:[]};
 	
@@ -164,17 +167,21 @@ function decodePlanBZ(filename, outputFile) {
 	header.version = f.readInteger(2) + '.' + f.readInteger(2);
 	header.creationDate = f.readTimestamp();
 	
+	header.listLength2 = f.readInteger(4);
+	header.unknown.push(f.readInteger(1));	
+	header.unknown.push(f.readInteger(1));	
+	header.unknown.push(f.readInteger(2));	
+	header.unknown.push(f.readInteger(2));	
+	header.listLength1 = f.readInteger(4);
 	header.unknown.push(f.readInteger(4));
-	header.unknown.push(f.readInteger(2));
-	header.unknown.push(f.readInteger(2));
-	header.unknown.push(f.readInteger(2));
-	header.unknown.push(f.readInteger(4));
-	header.unknown.push(f.readInteger(4));
+	
 	header.unknown.push(f.getHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
-	var data1 = [];
+	var
+		data1 = [],
+		data2 = [];
 	
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
@@ -182,10 +189,18 @@ function decodePlanBZ(filename, outputFile) {
 		data1[i][1] = f.readInteger(2);
 	}
 	
+	for (var i = 0; i < header.listLength2; i++) {
+		data2[i] = f.readInteger(1);
+	}
+	
 	header.bytesLeft = f.check(outputFile);
+	if (header.bytesLeft > 0) {
+		console.log('#;' + header.unknown.join(';') + ';' + header.bytesLeft );
+	}
 	
 	exportHeader(outputFile, header);
-	exportCSV(outputFile, '1', data1);
+	exportTSV(outputFile, '1', data1);
+	exportTSV(outputFile, '2', data2);
 }
 
 function decodePlanKGEO(filename, outputFile) {
@@ -221,8 +236,10 @@ function decodePlanKGEO(filename, outputFile) {
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
-	exportCSV(outputFile, '1', data1);
+	exportTSV(outputFile, '1', data1);
 }
+
+
 
 function PlanFile(filename) {
 	var me = this;
@@ -240,9 +257,9 @@ function PlanFile(filename) {
 		}
 	}
 	
-	me.readString = function(n) {
+	me.readString = function(n, movePointer) {
 		var p = me.pos;
-		me.pos += n;
+		if (movePointer !== false) me.pos += n;
 		return me.buffer.toString('binary', p, p+n);
 	}
 	
@@ -309,53 +326,41 @@ function PlanFile(filename) {
 	
 	me.getBinDump = function(n) {
 		var n = Math.min(n, me.length - me.pos);
-		var s = '';
+		var b = new Buffer(n*8);
+		var p = 0;
 		for (var i = 0; i < n; i++) {
 			var v = _readByte();
-			s += '';
 			for (var j = 0; j < 8; j++) {
-				s += ((v > 127) ? '1' : '0');
+				b.writeUInt8((v > 127) ? 108 : 48, p);
+				p++;
 				v = (v & 0x7F) << 1;
 			}
 		}
-		return s;
-	}
-	
-	me.outputHexDump = function(n) {
-		console.warn(hexDump(n));
-	}
-	
-	me.outputHexDump2 = function(n) {
-		var n = Math.min(n, me.length - me.pos);
-		var l1 = '', l2 = '', l3 = '';
-		for (var i = 0; i < n; i++) {
-			var v = _readByte();
-			l1 += '   '+ (((v >= 32) && (v < 127)) ? String.fromCharCode(v) : '#');
-			l2 += '  ' + _clamp('000'+v.toString(16), 2);
-			l3 += ' '  + _clamp('   '+v, 3);
-		}
-		console.warn(l1);
-		console.warn(l2);
-		console.warn(l3);
-		console.info('');
+		return b.toString('binary');
 	}
 	
 	me.check = function (outputFile) {
-		var filename = outputFile+'_rest.raw';
-		ensureFolderFor(filename);
+		var filename1 = outputFile+'_rest.raw';
+		var filename2 = outputFile+'_rest.bin.raw';
+		ensureFolderFor(filename1);
+		ensureFolderFor(filename2);
+		
 		if (me.pos < me.length) {
 			var n = me.length - me.pos;
-			var s = me.readString(n);
-			fs.writeFileSync(filename, s, 'binary');
+			fs.writeFileSync(filename1, me.readString(n, false), 'binary');
+			fs.writeFileSync(filename2, me.getBinDump(n), 'binary');
 			console.log('WARNING: Still "'+n+'" bytes left!');
 			return n;
 		} else {
-			if (fs.existsSync(filename)) fs.unlinkSync(filename);
+			if (fs.existsSync(filename1)) fs.unlinkSync(filename1);
+			if (fs.existsSync(filename2)) fs.unlinkSync(filename2);
 		}
 	}
 	
 	return me;
 }
+
+
 
 function exportHeader(outputFile, data) {
 	var filename = outputFile+'_header.json';
@@ -363,7 +368,7 @@ function exportHeader(outputFile, data) {
 	fs.writeFileSync(filename, JSON.stringify(data, null, '\t'), 'utf8');
 }
 
-function exportCSV(outputFile, listName, data) {
+function exportTSV(outputFile, listName, data) {
 	var a = [];
 	if (Object.prototype.toString.call(data[0]) === '[object Array]') {
 		for (var i = 0; i < data.length; i++) {
