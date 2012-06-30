@@ -1,111 +1,135 @@
-var fs = require('fs');
+"use strict";
 
-exports.findPlan = function (type, directory) {
+var fs = require('fs');
+var path = require('path');
+var planModules = {};
+
+function getAllPlanFiles(inputFolder, filter, recursive) {
 	var files = [];
-	var scan = function (d) {
-		var stats = fs.statSync(d)
+	
+	var scan = function (fol) {
+		var stats = fs.statSync(fol)
 		if (stats.isFile()) {
-			var filename = d.split('/').pop();
-			if (filename.toLowerCase() == type) files.push(d);
-		} else if (stats.isDirectory()) {
-			var f = fs.readdirSync(d);
-			for (var i = 0; i < f.length; i++) scan(d+'/'+f[i]);
+			var filename = fol.split('/').pop();
+			var filetype = filename.toLowerCase();
+			if (filetype.substr(0,4) == 'plan') {
+				if (!filter || (filetype == filter)) {
+					files.push({
+						filename: filename,
+						filetype: filetype,
+						fullname: fol,
+						subfolder: fol.substr(inputFolder.length)
+					});
+				}
+			}
+		} else if (recursive && stats.isDirectory()) {
+			var f = fs.readdirSync(fol);
+			for (var i = 0; i < f.length; i++) scan(fol + '/' + f[i]);
 		}
 	}
-	scan(directory);
+	scan(inputFolder);
 	return files;
 }
 
-exports.importw = function(filename) {
-	console.log('---------------------------');
-	console.log(filename);
-	
-	var unknown = [];
-	var f = getPlanFile(filename);
-	var fileSize = fs.statSync(filename).size;
-	
-	var headerSize = f.readInteger(2);
-	
-	f.readBytes('04 00');
-	
-	var version = f.readInteger(2);
-	console.log('Version: '+version);
-	
-	var creationDate = f.readInteger(4);
-	
-	f.readBytes('20 20 20 20');
-	f.readBytes('20 20 20 20');
-	f.readBytes('20 20 20 20');
-	f.readBytes('20 20 20');
-	
-	var n1, n2, n3;
-	
-	if (version == 0) {
-		unknown.push(n1 = f.readInteger(2));
-		unknown.push(n2 = f.readInteger(2));
-		unknown.push(f.hexDump(8));
-	} else {
-		unknown.push(n1 = f.readInteger(4));
-		unknown.push(n2 = f.readInteger(4));
-		unknown.push(f.hexDump(10));
-	}
-	
-	var desc = f.readString(headerSize - f.pos);
-	
-	var data1 = [];
-	
-	if (version == 0) {
-		for (var i = 0; i < n2; i++) data1.push(f.readInteger(2));
-	} else {
-		for (var i = 0; i < n2; i++) data1.push(f.readInteger(4));
-	}
-	
-	var data2 = [];
-	for (var i = 0; i < n1; i++) data2.push(f.binDump(46));
-	
-	console.log(f.pos, fileSize-f.pos);
-	
-	f.check();
-	
-	
-	exportCSV(filename+'1.csv', data1);
-	exportCSV(filename+'2.csv', data2);
+function decodeFiles(files, outputFolder) {
+	files.each(function (file) {
+		decodeFile(file, outputFolder);
+	});
 }
 
-exports.importb = function(filename) {
-	console.log(filename);
+function decodeFile(file, outputFolder) {
+	var outputFile = path.normalize(outputFolder + file.subfolder);
+	console.log(file.subfolder);
+	switch (file.filetype) {
+		case 'planb':    decodePlanB(    file.fullname, outputFile); break;
+		case 'planbz':   decodePlanBZ(   file.fullname, outputFile); break;
+		case 'plankgeo': decodePlanKGEO( file.fullname, outputFile); break;
+		case 'planw':    decodePlanW(    file.fullname, outputFile); break;
+		default:
+	}
+}
+
+exports.decodeFiles = decodeFiles;
+exports.getAllPlanFiles = getAllPlanFiles;
+
+function decodePlanW(filename, outputFile) {
+	var header = {unknown:[]};
 	
-	var unknown = [];
-	var f = getPlanFile(filename);
-	var fileSize = fs.statSync(filename).size;
+	var f = new PlanFile(filename);
 	
-	var headerSize = f.readInteger(2);
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
 	
-	f.readBytes('04 00 00 00');
+	f.checkBytes('20 20 20 20 20');
+	f.checkBytes('20 20 20 20 20');
+	f.checkBytes('20 20 20 20 20');
 	
-	var creationDate = f.readInteger(4);
+	var list2BlockSize;
+	switch (header.version) {
+		case '4.0':
+			header.listLength2 = f.readInteger(2);
+			header.listLength1 = f.readInteger(2);
+			header.unknown.push(f.getHexDump(8));
+			list2BlockSize = 2;
+		break;
+		case '4.1':
+			header.listLength2 = f.readInteger(4);
+			header.listLength1 = f.readInteger(4);
+			header.unknown.push(f.getHexDump(10));
+			list2BlockSize = 4;
+		break;
+		default:
+			console.error('ERROR: unknown Version "' + header.version + '"');
+	}
 	
-	f.readBytes('20 20 20 20');
-	f.readBytes('20 20 20 20');
-	f.readBytes('20 20 20 20');
-	f.readBytes('20 20 20 02 00');
+	header.description = f.readString(header.size - f.pos);
 	
-	var n1 = f.readInteger(4);
-	var n2 = f.readInteger(4);
-	var n3 = f.readInteger(4);
+	var
+		data1 = [],
+		data2 = [];
 	
-	f.readBytes('33 00 00 00');
+	for (var i = 0; i < header.listLength1; i++) data1.push(f.readInteger(list2BlockSize));
 	
-	var text = f.readString(47);
+	for (var i = 0; i < header.listLength2; i++) data2.push(f.getBinDump(46));
 	
-	unknown.push(f.readInteger(2));
-	unknown.push(f.readInteger(2));
-	unknown.push(f.readInteger(2));
+	header.bytesLeft = f.check(outputFile);
 	
-	var desc = f.readString(headerSize-96);
+	exportHeader(outputFile, header);
+	exportCSV(outputFile, '1', data1);
+	exportCSV(outputFile, '2', data2);
+}
+
+function decodePlanB(filename, outputFile) {
+	var header = {unknown:[]};
 	
-	var data1 = []
-	for (var i = 0; i < n2; i++) {
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	f.checkBytes('20 20 20 20 20');
+	f.checkBytes('20 20 20 20 20');
+	f.checkBytes('20 20 20 20 20');
+	
+	header.unknown.push(f.getHexDump(6));
+	
+	header.listLength1 = f.readInteger(4);
+	header.listLength2 = f.readInteger(4);
+	
+	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readString(17));
+	header.unknown.push(f.readString(30));
+	header.unknown.push(f.getHexDump(6));
+	
+	header.description = f.readString(header.size - f.pos);
+	
+	var
+		data1 = [],
+		data2 = [];
+		
+	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
 		data1[i][0] = f.readInteger(2);
 		data1[i][1] = f.readInteger(2);
@@ -114,97 +138,93 @@ exports.importb = function(filename) {
 		data1[i][4] = f.readInteger(4);
 	}
 	
-	var data2 = []
-	for (var i = 0; i < n3; i++) {
+	for (var i = 0; i < header.listLength2; i++) {
 		data2[i] = [];
 		data2[i][0] = f.readInteger(4);
 		data2[i][1] = f.readInteger(4);
 	}
 	
-	for (var i = 0; i < n3; i++) data2[i][2] = f.readNullString();
+	for (var i = 0; i < header.listLength2; i++) {
+		data2[i][2] = f.readNullString();
+	}
 	
-	f.check();
+	header.bytesLeft = f.check(outputFile);
 	
-	exportCSV(filename+'1.csv', data1);
-	exportCSV(filename+'2.csv', data2);
+	exportHeader(outputFile, header);
+	exportCSV(outputFile, '1', data1);
+	exportCSV(outputFile, '2', data2);
 }
 
-exports.importbz = function(filename) {
-	console.log(filename);
+function decodePlanBZ(filename, outputFile) {
+	var header = {unknown:[]};
 	
-	var unknown = [];
-	var f = getPlanFile(filename);
-	var fileSize = fs.statSync(filename).size;
+	var f = new PlanFile(filename);
 	
-	var headerSize = f.readInteger(2);
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
 	
-	f.readBytes('04 00 00 00');
-	var creationDate = f.readInteger(4);
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.getHexDump(4));
 	
-	var n1;
-	unknown.push(f.readInteger(4));
-	unknown.push(f.hexDump(6));
-	unknown.push(n1 = f.readInteger(4));
-	unknown.push(f.readInteger(4));
-	unknown.push(f.hexDump(4));
-	
-	var desc = f.readString(headerSize-32);
+	header.description = f.readString(header.size - f.pos);
 	
 	var data1 = [];
-	for (var i = 0; i < n1; i++) {
+	
+	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
 		data1[i][0] = f.readInteger(4);
 		data1[i][1] = f.readInteger(2);
 	}
 	
-	// Magic
-	var n = (fileSize - f.pos)/4;
-	var s = '';
-	for (var i = 0; i < n; i++) {
-		s += f.binDump(8);
+	header.bytesLeft = f.check(outputFile);
+	
+	exportHeader(outputFile, header);
+	exportCSV(outputFile, '1', data1);
+}
+
+function decodePlanKGEO(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	header.listLength1 = f.readInteger(4);
+	
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	
+	header.description = f.readString(header.size - f.pos);
+	
+	var data1 = [];
+	
+	for (var i = 0; i < header.listLength1; i++) {
+		data1[i] = [];
+		data1[i][0] = f.readInteger(-2);
 	}
 	
-	//s = s.split('').join('\t');
-	fs.writeFileSync(filename+'.raw', s);
-	// magic out
+	for (var i = 0; i < header.listLength1; i++)	data1[i][1] = f.readInteger(-2);
+	for (var i = 0; i < header.listLength1; i++)	data1[i][2] = f.readInteger(-2);
+	for (var i = 0; i < header.listLength1; i++)	data1[i][3] = f.readInteger(-2);
 	
-	console.log(f.pos, fileSize - f.pos);
+	header.bytesLeft = f.check(outputFile);
 	
-	console.log(desc);
-	console.log(unknown);
-	//f.check();
+	exportHeader(outputFile, header);
+	exportCSV(outputFile, '1', data1);
 }
 
-exports.importkgeo = function(filename) {
-	console.log(filename);
-	
-	var unknown = [];
-	var f = getPlanFile(filename);
-	var fileSize = fs.statSync(filename).size;
-	
-	var headerSize = f.readInteger(2);
-	
-	f.readBytes('04 00 00 00');
-	var creationDate = f.readInteger(4);
-	var count1 = f.readInteger(4);
-	unknown.push(f.readInteger(2));
-	f.readBytes('00 00 00 00');
-	unknown.push(f.readInteger(2));
-	unknown.push(f.readInteger(2));
-	var desc = f.readString(headerSize-24);
-	
-	var data = new Array(count1);
-	for (var i = 0; i < count1; i++) data[i] = [];
-	for (var i = 0; i < count1; i++) data[i][0] = f.readInteger(-2);
-	for (var i = 0; i < count1; i++) data[i][1] = f.readInteger(-2);
-	for (var i = 0; i < count1; i++) data[i][0] = (data[i][0]*1000 + f.readInteger(-2))/100000;
-	for (var i = 0; i < count1; i++) data[i][1] = (data[i][1]*1000 + f.readInteger(-2))/100000;
-	
-	f.check();
-	exportCSV(filename+'.csv', data);
-}
-
-function getPlanFile(filename) {
+function PlanFile(filename) {
 	var me = this;
 	me.buffer = fs.readFileSync(filename);
 	me.length = me.buffer.length;
@@ -212,10 +232,10 @@ function getPlanFile(filename) {
 	
 	me.readInteger = function(n) {
 		switch (n) {
-			case  1: return me._readByte();
-			case  2: return me._readWord();
-			case -2: return me._readWord(true);
-			case  4: return me._readLong();
+			case  1: return _readByte();
+			case  2: return _readWord();
+			case -2: return _readWord(true);
+			case  4: return _readLong();
 			default: console.error('################ ERROR: Vermisse die Anzahl der Bytes');
 		}
 	}
@@ -239,22 +259,26 @@ function getPlanFile(filename) {
 		return me.buffer.toString('binary', s, s + n);
 	}
 	
-	me.readBytes = function(text) {
+	me.checkBytes = function(text) {
 		text = text.split(' ');
 		for (var i = 0; i < text.length; i++) {
 			var v1 = parseInt(text[i], 16);
-			var v2 = me._readByte();
+			var v2 = _readByte();
 			if (v1 != v2) console.error('################ ERROR: Bytes sind nicht identisch');
 		}
 	}
 	
-	me._readLong = function() {
+	me.readTimestamp = function() {
+		return (new Date(_readLong()*1000)).toJSON();
+	}
+	
+	function _readLong() {
 		var p = me.pos;
 		me.pos += 4;
 		return me.buffer.readUInt32LE(p);
 	}
 	
-	me._readWord = function(signed) {
+	function _readWord(signed) {
 		var p = me.pos;
 		me.pos += 2;
 		if (signed) {
@@ -264,30 +288,33 @@ function getPlanFile(filename) {
 		}
 	}
 	
-	me._readByte = function() {
+	function _readByte() {
 		var p = me.pos;
 		me.pos += 1;
 		return me.buffer.readUInt8(p);
 	}
 	
-	me.hexDump = function(n) {
-		var n = Math.min(n, me.length - me.pos);
+	function _clamp(text, l) {
+		return text.substr(text.length-l);
+	}
+	
+	me.getHexDump = function(n) {
 		var s = [];
 		for (var i = 0; i < n; i++) {
-			var v = me._readByte();
-			s.push(clamp('000'+v.toString(16), 2));
+			var v = _readByte();
+			s.push(_clamp('000'+v.toString(16), 2));
 		}
 		return s.join(' ');
 	}
 	
-	me.binDump = function(n) {
+	me.getBinDump = function(n) {
 		var n = Math.min(n, me.length - me.pos);
 		var s = '';
 		for (var i = 0; i < n; i++) {
-			var v = me._readByte();
+			var v = _readByte();
 			s += '';
 			for (var j = 0; j < 8; j++) {
-				s += ((v > 127) ? 'l' : '0');
+				s += ((v > 127) ? '1' : '0');
 				v = (v & 0x7F) << 1;
 			}
 		}
@@ -302,10 +329,10 @@ function getPlanFile(filename) {
 		var n = Math.min(n, me.length - me.pos);
 		var l1 = '', l2 = '', l3 = '';
 		for (var i = 0; i < n; i++) {
-			var v = me._readByte();
+			var v = _readByte();
 			l1 += '   '+ (((v >= 32) && (v < 127)) ? String.fromCharCode(v) : '#');
-			l2 += '  ' + clamp('000'+v.toString(16), 2);
-			l3 += ' '  + clamp('   '+v, 3);
+			l2 += '  ' + _clamp('000'+v.toString(16), 2);
+			l3 += ' '  + _clamp('   '+v, 3);
 		}
 		console.warn(l1);
 		console.warn(l2);
@@ -313,27 +340,57 @@ function getPlanFile(filename) {
 		console.info('');
 	}
 	
-	me.check = function () {
+	me.check = function (outputFile) {
+		var filename = outputFile+'_rest.raw';
+		ensureFolderFor(filename);
 		if (me.pos < me.length) {
-			me.outputHexDump2(40);
+			var n = me.length - me.pos;
+			var s = me.readString(n);
+			fs.writeFileSync(filename, s, 'binary');
+			console.log('WARNING: Still "'+n+'" bytes left!');
+			return n;
+		} else {
+			if (fs.existsSync(filename)) fs.unlinkSync(filename);
 		}
 	}
 	
 	return me;
 }
 
-function clamp(text, l) {
-	return text.substr(text.length-l);
+function exportHeader(outputFile, data) {
+	var filename = outputFile+'_header.json';
+	ensureFolderFor(filename);
+	fs.writeFileSync(filename, JSON.stringify(data, null, '\t'), 'utf8');
 }
 
-function exportCSV(filename, data) {
+function exportCSV(outputFile, listName, data) {
 	var a = [];
 	if (Object.prototype.toString.call(data[0]) === '[object Array]') {
 		for (var i = 0; i < data.length; i++) {
-			a.push(data[i].join(';').replace(/\./g, ','));
+			a.push(data[i].join('\t'));
 		}
 	} else {
 		a = data;
 	}
+	var filename = outputFile+'_'+listName+'.tsv';
+	ensureFolderFor(filename);
 	fs.writeFileSync(filename, a.join('\n'), 'binary');
+}
+
+function ensureFolderFor(filename) {
+	var dirname = path.dirname(filename);
+	if (!fs.existsSync(dirname)) {
+		ensureFolderFor(dirname);
+		fs.mkdirSync(dirname);
+	}
+}
+
+if (!Array.prototype.each) {
+	Array.prototype.each = function(fun) {
+		var t = Object(this);
+		var len = t.length;
+		for (var i = 0; i < len; i++) {
+			if (i in t) fun(t[i], i);
+		}
+	};
 }

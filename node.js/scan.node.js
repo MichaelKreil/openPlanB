@@ -1,19 +1,16 @@
-var planinterface = require('./modules/planinterface.js');
+var fs = require('fs');
+var path = require('path');
+var planUtils = require('./modules/plan_utils.js');
 
-var files;
+var config = fs.readFileSync('config.json', 'utf8');
 
-/*
-files = planinterface.findPlan('plankgeo', '..');
-for (var i = 0; i < files.length; i++) planinterface.importkgeo(files[i]);
+config = JSON.parse(config);
 
-files = planinterface.findPlan('planb', '..');
-for (var i = 0; i < files.length; i++) planinterface.importb(files[i]);
+config.planFolder   = path.resolve(config.planFolder);
+config.decodeFolder = path.resolve(config.decodeFolder);
+config.csvFolder    = path.resolve(config.csvFolder);
 
-files = planinterface.findPlan('planw', '..');
-for (var i = 0; i < files.length; i++) planinterface.importw(files[i]);
+var files = planUtils.getAllPlanFiles(config.planFolder, config.filter, config.recursive);
 
-planinterface.importkgeo('../fahrinfo/DATA/PLANKGEO');
-*/
+planUtils.decodeFiles(files, config.decodeFolder);
 
-files = planinterface.findPlan('planbz', '..');
-for (var i = 0; i < 1; i++) planinterface.importbz(files[i]);
