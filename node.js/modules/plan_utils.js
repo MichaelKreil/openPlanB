@@ -39,7 +39,10 @@ function decodeFiles(files, outputFolder) {
 
 function decodeFile(file, outputFolder) {
 	var outputFile = path.normalize(outputFolder + file.subfolder);
-	console.log(file.subfolder);
+	
+	var stats = fs.statSync(file.fullname);
+	console.log(file.filetype + '\t' + stats.size);
+	
 	switch (file.filetype) {
 		case 'planb':    decodePlanB(    file.fullname, outputFile); break;
 		case 'planbetr': decodePlanBETR( file.fullname, outputFile); break;
@@ -512,7 +515,7 @@ function PlanFile(filename) {
 	}
 	
 	me.getHexDump = function(n) {
-		n = Math.min(n, me.length - me.pos);
+		//n = Math.min(n, me.length - me.pos);
 		var s = [];
 		for (var i = 0; i < n; i++) {
 			var v = _readByte();
@@ -522,17 +525,29 @@ function PlanFile(filename) {
 	}
 	
 	me.getBinDump = function(n) {
-		var a = new Array(n);
 		var p = 0;
-		for (var i = 0; i < n; i++) {
-			var v = _readByte();
-			for (var j = 0; j < 8; j++) {
-				a[p] = (v > 127) ? 'l' : '0';
-				p++;
 				v = (v & 0x7F) << 1;
+		if (n < 1000) {
+			var a = new Array(n*8);
+			for (var i = 0; i < n; i++) {
+				for (var j = 0; j < 8; j++) {
+					a[p] = (v > 127) ? 'l' : '0';
+					v = (v & 0x7F) << 1;
+				}
 			}
+			return a.join('');
+		} else {
+			var b = new Buffer(n*8);
+			for (var i = 0; i < n; i++) {
+				var v = _readByte();
+				for (var j = 0; j < 8; j++) {
+					b.writeUInt8((v > 127) ? 108 : 48, p);
+					p++;
+					v = (v & 0x7F) << 1;
+				}
+			}
+			return b.toString('binary');
 		}
-		return a.join('');
 	}
 	
 	me.check = function (outputFile) {
