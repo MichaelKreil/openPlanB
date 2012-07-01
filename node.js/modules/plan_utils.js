@@ -496,23 +496,29 @@ function decodePlanW(filename, outputFile) {
 	f.checkBytes('20 20 20 20 20');
 	f.checkBytes('20 20 20 20 20');
 	
-	var list2BlockSize;
 	switch (header.version) {
 		case '4.0':
-			header.listLength2 = f.readInteger(2);
 			header.listLength1 = f.readInteger(2);
-			header.unknown.push(f.getHexDump(8));
-			list2BlockSize = 2;
+			header.listLength2 = f.readInteger(2);
+			header.blockSize2 = f.readInteger(2);
+			header.unknown.push(f.getHexDump(4));
+			header.unknown.push(f.readInteger(2));
+			header.blockSize1 = 2;
 		break;
 		case '4.1':
-			header.listLength2 = f.readInteger(4);
 			header.listLength1 = f.readInteger(4);
-			header.unknown.push(f.getHexDump(10));
-			list2BlockSize = 4;
+			header.listLength2 = f.readInteger(4);
+			header.blockSize2 = f.readInteger(2);
+			header.unknown.push(f.getHexDump(4));
+			header.unknown.push(f.readInteger(4));
+			header.blockSize1 = 4;
 		break;
 		default:
 			console.error('ERROR: unknown Version "' + header.version + '"');
 	}
+	
+	header.listLength1++; // Keine Ahnung, warum!
+	header.listLength2--;
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -520,10 +526,10 @@ function decodePlanW(filename, outputFile) {
 		data1 = [],
 		data2 = [];
 	
-	for (var i = 0; i < header.listLength1; i++) data1.push(f.readInteger(list2BlockSize));
+	for (var i = 0; i < header.listLength1; i++) data1[i] = f.readInteger(header.blockSize1);
 	
-	for (var i = 0; i < header.listLength2; i++) data2.push(f.getBinDump(46));
-	
+	for (var i = 0; i < header.listLength2; i++) data2[i] = f.getBinDump(header.blockSize2);
+
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
