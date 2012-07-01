@@ -51,6 +51,7 @@ function decodeFile(file, outputFolder) {
 		case 'plankant': decodePlanKANT( file.fullname, outputFile); break;
 		case 'plankgeo': decodePlanKGEO( file.fullname, outputFile); break;
 		case 'planlauf': decodePlanLAUF( file.fullname, outputFile); break;
+		case 'planng':   decodePlanNG(   file.fullname, outputFile); break;
 		case 'planu':    decodePlanU(    file.fullname, outputFile); break;
 		case 'planvw':   decodePlanVW(   file.fullname, outputFile); break;
 		case 'planw':    decodePlanW(    file.fullname, outputFile); break;
@@ -421,6 +422,86 @@ function decodePlanLAUF(filename, outputFile) {
 	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', data1);
+}
+
+function decodePlanNG(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	
+	header.unknown.push(f.getHexDump(2));
+	header.unknown.push(f.readInteger(4));
+	
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(4));
+	
+	header.listLength1 = f.readInteger(4);
+	
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.getHexDump(4));
+
+	header.unknown.push(f.getHexDump(256));
+	header.unknown.push(f.getHexDump(256));
+	
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.getHexDump(5));
+	
+	header.description = f.getHexDump(header.size - f.pos);
+	header.descriptionLength = header.description.length;
+	
+	var
+		data1 = [],
+		data2 = [];
+		
+	for (var i = 0; i < header.listLength1; i++) {
+		data1[i] = [];
+		data1[i][0] = f.readInteger(1);
+		data1[i][1] = f.readInteger(1);
+		data1[i][2] = f.readInteger(2);
+		data1[i][3] = f.readInteger(4);
+		data2[i] = [];
+	}
+	data1.push([0,0,0,f.length]);
+	
+	var
+		i = 0,
+		p0 = f.pos;
+	
+	while (f.pos < f.length) {
+		if (f.pos-p0 >= data1[i+1][3]) {
+			i++;
+			data2[i].push(f.readInteger(4));
+		} else {
+			data2[i].push(f.readInteger(1));
+		}
+	}
+	
+	data1.pop();
+	
+	header.bytesLeft = f.check(outputFile);
+	
+	exportHeader(outputFile, header);
+	exportTSV(outputFile, '1', data1);
+	exportTSV(outputFile, '2', data2);
 }
 
 function decodePlanU(filename, outputFile) {
