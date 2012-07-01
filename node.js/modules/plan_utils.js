@@ -526,12 +526,13 @@ function PlanFile(filename) {
 	
 	me.getBinDump = function(n) {
 		var p = 0;
-				v = (v & 0x7F) << 1;
 		if (n < 1000) {
 			var a = new Array(n*8);
 			for (var i = 0; i < n; i++) {
+				var v = _readByte();
 				for (var j = 0; j < 8; j++) {
 					a[p] = (v > 127) ? 'l' : '0';
+					p++;
 					v = (v & 0x7F) << 1;
 				}
 			}
