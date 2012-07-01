@@ -3,5 +3,5 @@
 	"decodeFolder":"../../../data_files/decoded_files/",
 	"csvFolder":"../../../data_files/csv_files/",
 	"recursive":true,
-	"filter":"planbz"
+	"filter":null
 }

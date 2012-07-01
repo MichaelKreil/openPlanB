@@ -44,6 +44,7 @@ function decodeFile(file, outputFolder) {
 		case 'planb':    decodePlanB(    file.fullname, outputFile); break;
 		case 'planbz':   decodePlanBZ(   file.fullname, outputFile); break;
 		case 'plankgeo': decodePlanKGEO( file.fullname, outputFile); break;
+		case 'planlauf': decodePlanLAUF( file.fullname, outputFile); break;
 		case 'planw':    decodePlanW(    file.fullname, outputFile); break;
 		default:
 	}
@@ -239,6 +240,92 @@ function decodePlanKGEO(filename, outputFile) {
 	exportTSV(outputFile, '1', data1);
 }
 
+function decodePlanLAUF(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	header.listLength1 = f.readInteger(4);
+	header.unknown.push(f.readInteger(4));
+	header.offset1 = f.readInteger(4);
+	header.unknown.push(f.getHexDump(4));
+	
+	header.description = f.readString(header.size - f.pos);
+	
+	var
+		data1 = [];
+	
+	for (var i = 0; i < header.listLength1; i++) {
+		data1[i] = [];
+		data1[i][0] = f.readInteger(4);
+	}
+	data1.push([f.length]);
+	
+	var i = 0;
+	while (f.pos < f.length) {
+		if (f.pos >= data1[i+1][0]) i++;
+		data1[i].push(f.readInteger(4));
+	}
+	
+	data1.pop();
+
+	header.bytesLeft = f.check(outputFile);
+	
+	exportHeader(outputFile, header);
+	exportTSV(outputFile, '1', data1);
+}
+
+function decodePlanW(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	f.checkBytes('20 20 20 20 20');
+	f.checkBytes('20 20 20 20 20');
+	f.checkBytes('20 20 20 20 20');
+	
+	var list2BlockSize;
+	switch (header.version) {
+		case '4.0':
+			header.listLength2 = f.readInteger(2);
+			header.listLength1 = f.readInteger(2);
+			header.unknown.push(f.getHexDump(8));
+			list2BlockSize = 2;
+		break;
+		case '4.1':
+			header.listLength2 = f.readInteger(4);
+			header.listLength1 = f.readInteger(4);
+			header.unknown.push(f.getHexDump(10));
+			list2BlockSize = 4;
+		break;
+		default:
+			console.error('ERROR: unknown Version "' + header.version + '"');
+	}
+	
+	header.description = f.readString(header.size - f.pos);
+	
+	var
+		data1 = [],
+		data2 = [];
+	
+	for (var i = 0; i < header.listLength1; i++) data1.push(f.readInteger(list2BlockSize));
+	
+	for (var i = 0; i < header.listLength2; i++) data2.push(f.getBinDump(46));
+	
+	header.bytesLeft = f.check(outputFile);
+	
+	exportHeader(outputFile, header);
+	exportTSV(outputFile, '1', data1);
+	exportTSV(outputFile, '2', data2);
+}
 
 
 function PlanFile(filename) {
