@@ -55,6 +55,7 @@ function decodeFile(file, outputFolder) {
 		case 'planw':    decodePlanW(    file.fullname, outputFile); break;
 		case 'planzug':  decodePlanZUG(  file.fullname, outputFile); break;
 		default:
+			console.log('# unkown;' + file.filetype + ';' + stats.size);
 	}
 }
 
