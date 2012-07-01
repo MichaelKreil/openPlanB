@@ -46,6 +46,7 @@ function decodeFile(file, outputFolder) {
 		case 'plankgeo': decodePlanKGEO( file.fullname, outputFile); break;
 		case 'planlauf': decodePlanLAUF( file.fullname, outputFile); break;
 		case 'planw':    decodePlanW(    file.fullname, outputFile); break;
+		case 'planzug':  decodePlanZUG(  file.fullname, outputFile); break;
 		default:
 	}
 }
@@ -326,6 +327,47 @@ function decodePlanW(filename, outputFile) {
 	exportTSV(outputFile, '1', data1);
 	exportTSV(outputFile, '2', data2);
 }
+
+function decodePlanZUG(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	header.listLength1 = f.readInteger(4);
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(4));
+	
+	header.unknown.push(f.getHexDump(4));
+	
+	header.description = f.readString(header.size - f.pos);
+	
+	var
+		data1 = [];
+		
+	for (var i = 0; i < header.listLength1; i++) {
+		data1[i] = [];
+		data1[i][0] = f.getBinDump(2);
+	}
+	header.blockSize = (f.length - f.pos)/(2*header.listLength1);
+
+	for (var i = 0; i < header.listLength1; i++) {
+		for (var j = 0; j < header.blockSize; j++) { 
+			data1[i][j+1] = f.readInteger(2);
+		}
+	}
+
+	header.bytesLeft = f.check(outputFile);
+	
+	exportHeader(outputFile, header);
+	exportTSV(outputFile, '1', data1);
+}
+
+
 
 
 function PlanFile(filename) {
