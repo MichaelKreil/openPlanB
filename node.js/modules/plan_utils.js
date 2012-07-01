@@ -52,6 +52,7 @@ function decodeFile(file, outputFolder) {
 		case 'plankgeo': decodePlanKGEO( file.fullname, outputFile); break;
 		case 'planlauf': decodePlanLAUF( file.fullname, outputFile); break;
 		case 'planu':    decodePlanU(    file.fullname, outputFile); break;
+		case 'planvw':   decodePlanVW(   file.fullname, outputFile); break;
 		case 'planw':    decodePlanW(    file.fullname, outputFile); break;
 		case 'planzug':  decodePlanZUG(  file.fullname, outputFile); break;
 		default:
@@ -480,6 +481,58 @@ function decodePlanU(filename, outputFile) {
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
+	exportTSV(outputFile, '1', data1);
+	exportTSV(outputFile, '2', data2);
+}
+
+function decodePlanVW(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	header.listLength1 = f.readInteger(2);
+	header.unknown.push(f.readInteger(2));
+	header.listLength2 = f.readInteger(4);
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(4));
+	
+	header.unknown.push(f.getHexDump(4));
+	
+	header.description = f.readString(header.size - f.pos);
+	
+	var
+		data1 = [],
+		data2 = [];
+		
+	for (var i = 0; i < header.listLength1; i++) {
+		data1[i] = [];
+		data1[i][0] = f.readInteger(1);
+		data1[i][1] = f.readInteger(1);
+		data1[i][2] = f.readInteger(1);
+		data1[i][3] = f.readInteger(1);
+		data1[i][4] = f.readInteger(1);
+		data1[i][5] = f.readInteger(1);
+	}
+	
+	for (var i = 0; i < header.listLength2; i++) {
+		data2[i] = [];
+		data2[i][0] = f.readInteger(4);
+		data2[i][1] = f.readInteger(2);
+		data2[i][2] = f.readInteger(1);
+		data2[i][3] = f.readInteger(1);
+		data2[i][4] = f.readInteger(4);
+		data2[i][5] = f.readInteger(2);
+	}
+	
+	header.bytesLeft = f.check(outputFile);
+	
+	exportHeader(outputFile, header);
+	
 	exportTSV(outputFile, '1', data1);
 	exportTSV(outputFile, '2', data2);
 }
