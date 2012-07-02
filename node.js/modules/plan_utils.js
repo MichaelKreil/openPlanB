@@ -55,6 +55,7 @@ function decodeFile(file, outputFolder) {
 		case 'planb':    decodePlanB(    file.fullname, outputFile); break;
 		case 'planbetr': decodePlanBETR( file.fullname, outputFile); break;
 		case 'planbz':   decodePlanBZ(   file.fullname, outputFile); break;
+		case 'plancon':  decodePlanCON(  file.fullname, outputFile); break;
 		case 'plangls':  decodePlanGLS(  file.fullname, outputFile); break;
 		case 'planitxt': decodePlanITXT( file.fullname, outputFile); break;
 		case 'plankant': decodePlanKANT( file.fullname, outputFile); break;
@@ -192,7 +193,6 @@ function decodePlanBETR(filename, outputFile) {
 	exportTSV(outputFile, '4', data4);
 }
 
-// Noch nicht fertig:
 function decodePlanBZ(filename, outputFile) {
 	var header = {unknown:[]};
 	
@@ -244,6 +244,62 @@ function decodePlanBZ(filename, outputFile) {
 	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', data1);
+}
+
+// Noch nicht fertig
+function decodePlanCON(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	header.unknown.push(f.readInteger(4));
+	header.listLength1 = f.readInteger(4);
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(2));
+	
+	header.unknown.push(f.getHexDump(4));
+	
+	header.description = f.readString(header.size - f.pos);
+	
+	var
+		data1 = [],
+		data2 = [];
+	
+	
+	for (var i = 0; i < header.listLength1; i++) {
+		data1[i] = [];
+		data1[i][0] = f.readInteger(4);
+		data1[i][1] = f.getHexDump(1);
+		data1[i][2] = f.getHexDump(1);
+		data1[i][3] = f.readInteger(4);
+	}
+	
+	/*
+	var i = 0;
+	var v;
+	do {
+		data2[i] = []; 
+		data2[i][0] = (v = f.readInteger(-4));
+		data2[i][1] = f.readInteger(-4);
+		console.log(v);
+		i++;
+	} while (v >= 0);
+	*/
+	header.bytesLeft = f.check(outputFile);
+	
+	exportHeader(outputFile, header);
+	exportTSV(outputFile, '1', data1);
+	exportTSV(outputFile, '2', data2);
 }
 
 function decodePlanGLS(filename, outputFile) {
@@ -358,9 +414,6 @@ function decodePlanITXT(filename, outputFile) {
 		data1[i][1] = f.readInteger(-2);
 		data1[i][2] = f.readInteger(4);
 	}
-	
-	//header.unknown.push(f.getHexDump(10));
-	
 	
 	for (var i = 0; i < header.listLength2; i++) {
 		data2[i] = [];
@@ -936,12 +989,6 @@ function exportTSV(outputFile, listName, data) {
 	if (Object.prototype.toString.call(data[0]) === '[object Array]') {
 		for (var i = 0; i < data.length; i++) {
 			var r = data[i];
-			/*
-			for (var j = 0; j < r.length; j++) {
-				if (Object.prototype.toString.call(r[j]) === '[object String]') {
-					r[j] = '"'+r[j]+'"';
-				}
-			}*/
 			a.push(r.join('\t'));
 		}
 	} else {
