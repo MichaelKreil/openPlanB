@@ -530,7 +530,6 @@ function decodePlanNG(filename, outputFile) {
 	header.unknown.push(f.getHexDump(5));
 	
 	header.description = f.getHexDump(header.size - f.pos);
-	header.descriptionLength = header.description.length;
 	
 	var
 		data1 = [],
@@ -791,6 +790,7 @@ function PlanFile(filename) {
 			case -2: return _readWord(true);
 			case  3: return _readWord() + _readByte()*0x10000;
 			case  4: return _readLong();
+			case -4: return _readLong(true);
 			default: console.error('################ ERROR: Vermisse die Anzahl der Bytes');
 		}
 	}
@@ -827,10 +827,14 @@ function PlanFile(filename) {
 		return (new Date(_readLong()*1000)).toJSON();
 	}
 	
-	function _readLong() {
+	function _readLong(signed) {
 		var p = me.pos;
 		me.pos += 4;
-		return me.buffer.readUInt32LE(p);
+		if (signed) {
+			return me.buffer.readInt32LE(p);
+		} else {
+			return me.buffer.readUInt32LE(p);
+		}
 	}
 	
 	function _readWord(signed) {
