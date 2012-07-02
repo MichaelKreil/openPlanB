@@ -999,6 +999,12 @@ function exportTSV(outputFile, listName, data) {
 	fs.writeFileSync(filename, a.join('\n'), 'binary');
 }
 
+function exportJSON(outputFile, listName, data) {
+	var filename = outputFile+'_'+listName+'.json';
+	ensureFolderFor(filename);
+	fs.writeFileSync(filename, JSON.stringify(data, null, '\t'), 'utf8');
+}
+
 function ensureFolderFor(filename) {
 	var dirname = path.dirname(filename);
 	if (!fs.existsSync(dirname)) {
