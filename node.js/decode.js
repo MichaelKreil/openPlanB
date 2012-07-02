@@ -8,9 +8,8 @@ config = JSON.parse(config);
 
 config.planFolder   = path.resolve(config.planFolder);
 config.decodeFolder = path.resolve(config.decodeFolder);
-config.csvFolder    = path.resolve(config.csvFolder);
 
-var files = planUtils.getAllPlanFiles(config.planFolder, config.filter, config.recursive);
+var files = planUtils.getAllPlanFiles(config);
 
 planUtils.decodeFiles(files, config.decodeFolder);
 

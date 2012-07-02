@@ -1,7 +1,7 @@
 {
 	"planFolder":"../../../data_files/plan_files/",
 	"decodeFolder":"../../../data_files/decoded_files/",
-	"csvFolder":"../../../data_files/csv_files/",
 	"recursive":true,
-	"filter":null
+	"folderFilter":"fahrinfo_programm_pc-version",
+	"planFilter":"planb"
 }

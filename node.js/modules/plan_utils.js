@@ -4,7 +4,12 @@ var fs = require('fs');
 var path = require('path');
 var planModules = {};
 
-function getAllPlanFiles(inputFolder, filter, recursive) {
+function getAllPlanFiles(config) {
+	var inputFolder = config.planFolder;
+	var recursive = config.recursive;
+	var folderFilter = config.folderFilter;
+	var planFilter = config.planFilter;
+	
 	var files = [];
 	
 	var scan = function (fol) {
@@ -13,7 +18,10 @@ function getAllPlanFiles(inputFolder, filter, recursive) {
 			var filename = fol.split('/').pop();
 			var filetype = filename.toLowerCase();
 			if (filetype.substr(0,4) == 'plan') {
-				if (!filter || (filetype == filter)) {
+				var use = true;
+				if (planFilter && (filetype != planFilter)) use = false;
+				if (folderFilter && (fol.indexOf(folderFilter) == -1)) use = false;
+				if (use) {
 					files.push({
 						filename: filename,
 						filetype: filetype,
