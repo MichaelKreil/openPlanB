@@ -3,5 +3,5 @@
 	"decodeFolder":"../../../data_files/decoded_files/",
 	"recursive":true,
 	"folderFilter":false,
-	"planFilter":"planline"
+	"planFilter":"planuk"
 }
