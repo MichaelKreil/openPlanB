@@ -94,15 +94,15 @@ function decodePlanB(filename, outputFile) {
 	f.checkBytes('20 20 20 20 20');
 	f.checkBytes('20 20 20 20 20');
 	
-	header.unknown.push(f.getHexDump(6));
+	header.unknown.push(f.readHexDump(6));
 	
 	header.listLength1 = f.readInteger(4);
 	header.listLength2 = f.readInteger(4);
 	
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	header.unknown.push(f.readString(17));
 	header.unknown.push(f.readString(30));
-	header.unknown.push(f.getHexDump(6));
+	header.unknown.push(f.readHexDump(6));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -194,7 +194,7 @@ function decodePlanBETR(filename, outputFile) {
 	header.unknown.push(f.readInteger(2));
 	header.unknown.push(f.readInteger(4));
 	
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -227,7 +227,7 @@ function decodePlanBETR(filename, outputFile) {
 		data4[i] = [];
 		data4[i][0] = f.readInteger(4);
 		data4[i][1] = f.readInteger(2);
-		data4[i][2] = f.getBinDump(4);
+		data4[i][2] = f.readBinDump(4);
 	}
 	
 	header.bytesLeft = f.check(outputFile);
@@ -256,7 +256,7 @@ function decodePlanBZ(filename, outputFile) {
 	header.listLength1 = f.readInteger(4);
 	header.unknown.push(f.readInteger(4));
 	
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -313,7 +313,7 @@ function decodePlanCON(filename, outputFile) {
 	header.unknown.push(f.readInteger(2));
 	header.unknown.push(f.readInteger(2));
 	
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -325,8 +325,8 @@ function decodePlanCON(filename, outputFile) {
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
 		data1[i][0] = f.readInteger(4);
-		data1[i][1] = f.getHexDump(1);
-		data1[i][2] = f.getHexDump(1);
+		data1[i][1] = f.readHexDump(1);
+		data1[i][2] = f.readHexDump(1);
 		data1[i][3] = f.readInteger(4);
 	}
 	
@@ -372,7 +372,7 @@ function decodePlanGLS(filename, outputFile) {
 	header.listLength4 = f.readInteger(2);
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(4));
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -393,7 +393,7 @@ function decodePlanGLS(filename, outputFile) {
 		data2[i] = [];
 		var n = f.readInteger(integerByteCount);
 		for (var j = 0; j < n; j++) {
-			data2[i].push(f.getHexDump(2));
+			data2[i].push(f.readHexDump(2));
 			data2[i].push(f.readInteger(integerByteCount));
 		}
 	}
@@ -446,7 +446,7 @@ function decodePlanITXT(filename, outputFile) {
 	header.unknown.push(f.readInteger(2));
 	header.unknown.push(f.readInteger(2));
 	
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -463,11 +463,11 @@ function decodePlanITXT(filename, outputFile) {
 	
 	for (var i = 0; i < header.listLength2; i++) {
 		data2[i] = [];
-		data2[i][0] = f.getHexDump(4);
-		data2[i][1] = f.getHexDump(1);
-		data2[i][2] = f.getHexDump(1);
-		data2[i][3] = f.getHexDump(2);
-		data2[i][4] = f.getHexDump(2);
+		data2[i][0] = f.readHexDump(4);
+		data2[i][1] = f.readHexDump(1);
+		data2[i][2] = f.readHexDump(1);
+		data2[i][3] = f.readHexDump(2);
+		data2[i][4] = f.readHexDump(2);
 	}
 	
 	
@@ -491,7 +491,7 @@ function decodePlanKANT(filename, outputFile) {
 	
 	header.unknown.push(f.readInteger(4));
 	header.listLength1 = f.readInteger(4);
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 
 	header.description = f.readString(header.size - f.pos);
@@ -508,9 +508,9 @@ function decodePlanKANT(filename, outputFile) {
 		data2[i] = [];
 		data2[i][0] = f.readInteger(4);
 		data2[i][1] = f.readInteger(3);
-		data2[i][2] = f.getHexDump(1);
+		data2[i][2] = f.readHexDump(1);
 		data2[i][3] = f.readInteger(1);
-		data2[i][4] = f.getHexDump(1);
+		data2[i][4] = f.readHexDump(1);
 	}
 
 	header.bytesLeft = f.check(outputFile);
@@ -587,7 +587,7 @@ function decodePlanLAUF(filename, outputFile) {
 	header.listLength1 = f.readInteger(4);
 	header.unknown.push(f.readInteger(4));
 	header.offset1 = f.readInteger(4);
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -664,7 +664,7 @@ function decodePlanNG(filename, outputFile) {
 	
 	header.size = f.readInteger(2);
 	
-	header.unknown.push(f.getHexDump(2));
+	header.unknown.push(f.readHexDump(2));
 	header.unknown.push(f.readInteger(4));
 	
 	header.version = f.readInteger(2) + '.' + f.readInteger(2);
@@ -679,26 +679,26 @@ function decodePlanNG(filename, outputFile) {
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(4));
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 
-	header.unknown.push(f.getHexDump(256));
-	header.unknown.push(f.getHexDump(256));
+	header.unknown.push(f.readHexDump(256));
+	header.unknown.push(f.readHexDump(256));
 	
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
-	header.unknown.push(f.getHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
+	header.unknown.push(f.readHexDump(5));
 	
-	header.description = f.getHexDump(header.size - f.pos);
+	header.description = f.readHexDump(header.size - f.pos);
 	
 	var
 		data1 = [],
@@ -759,7 +759,7 @@ function decodePlanU(filename, outputFile) {
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(4));
 	
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	f.checkBytes('00 00 00 00');
 	
@@ -814,7 +814,7 @@ function decodePlanVW(filename, outputFile) {
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(4));
 	
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -868,7 +868,7 @@ function decodePlanW(filename, outputFile) {
 			header.listLength1 = f.readInteger(2);
 			header.listLength2 = f.readInteger(2);
 			header.blockSize2 = f.readInteger(2);
-			header.unknown.push(f.getHexDump(4));
+			header.unknown.push(f.readHexDump(4));
 			header.unknown.push(f.readInteger(2));
 			header.blockSize1 = 2;
 		break;
@@ -876,7 +876,7 @@ function decodePlanW(filename, outputFile) {
 			header.listLength1 = f.readInteger(4);
 			header.listLength2 = f.readInteger(4);
 			header.blockSize2 = f.readInteger(2);
-			header.unknown.push(f.getHexDump(4));
+			header.unknown.push(f.readHexDump(4));
 			header.unknown.push(f.readInteger(4));
 			header.blockSize1 = 4;
 		break;
@@ -895,7 +895,7 @@ function decodePlanW(filename, outputFile) {
 	
 	for (var i = 0; i < header.listLength1; i++) data1[i] = f.readInteger(header.blockSize1);
 	
-	for (var i = 0; i < header.listLength2; i++) data2[i] = f.getBinDump(header.blockSize2);
+	for (var i = 0; i < header.listLength2; i++) data2[i] = f.readBinDump(header.blockSize2);
 
 	header.bytesLeft = f.check(outputFile);
 	
@@ -918,7 +918,7 @@ function decodePlanZUG(filename, outputFile) {
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(4));
 	
-	header.unknown.push(f.getHexDump(4));
+	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -927,7 +927,7 @@ function decodePlanZUG(filename, outputFile) {
 		
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
-		data1[i][0] = f.getBinDump(2);
+		data1[i][0] = f.readBinDump(2);
 	}
 	header.blockSize = (f.length - f.pos)/(2*header.listLength1);
 
@@ -1026,7 +1026,7 @@ function PlanFile(filename) {
 		return text.substr(text.length-l);
 	}
 	
-	me.getHexDump = function(n) {
+	me.readHexDump = function(n) {
 		//n = Math.min(n, me.length - me.pos);
 		var s = [];
 		for (var i = 0; i < n; i++) {
@@ -1036,7 +1036,12 @@ function PlanFile(filename) {
 		return s.join(' ');
 	}
 	
-	me.getBinDump = function(n) {
+	me.getAsHexDump = function(v) {
+		//n = Math.min(n, me.length - me.pos);
+		return _clamp('000'+v.toString(16), 2);
+	}
+	
+	me.readBinDump = function(n) {
 		var p = 0;
 		if (n < 1000) {
 			var a = new Array(n*8);
@@ -1063,6 +1068,15 @@ function PlanFile(filename) {
 		}
 	}
 	
+	me.getAsBinDump = function(v) {
+		var s = '';
+		for (var j = 0; j < 8; j++) {
+			s += (v > 127) ? 'l' : '0';
+			v = (v & 0x7F) << 1;
+		}
+		return s;
+	}
+	
 	me.check = function (outputFile) {
 		var filename1 = outputFile+'_rest.raw';
 		var filename2 = outputFile+'_rest.bin.raw';
@@ -1072,7 +1086,7 @@ function PlanFile(filename) {
 		if (me.pos < me.length) {
 			var n = me.length - me.pos;
 			fs.writeFileSync(filename1, me.readString(n, false), 'binary');
-			fs.writeFileSync(filename2, me.getBinDump(n), 'binary');
+			fs.writeFileSync(filename2, me.readBinDump(n), 'binary');
 			console.log('WARNING: Still "'+n+'" bytes left!');
 			return n;
 		} else {
