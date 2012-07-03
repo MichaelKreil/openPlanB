@@ -261,6 +261,9 @@ function decodePlanBZ(filename, outputFile) {
 	
 	header.description = f.readString(header.size - f.pos);
 	
+	/*
+	// OK, irgendwas läuft hier noch nicht
+	
 	var
 		data1 = [];
 	
@@ -276,21 +279,36 @@ function decodePlanBZ(filename, outputFile) {
 		i1 = -1;
 	
 	do { i1++ } while (data1[i1][0] == 4294967295);
+	var
+		debug = [],
+		debug2 = [];
 	
 	while (f.pos < f.length) {
+		if (debug[i1] === undefined) debug[i1] = '';
 		if (f.pos >= data1[i1][0]) {
+			//if ((i0 >= 0) && data1[i0].length % 2 == 1) debug[i1] += '99999999';
+			//debug[i1] += '99999999';
 			i0 = i1;
 			do { i1++ } while (data1[i1][0] == 4294967295);
 		}
-		data1[i0].push(f.readInteger(1));
+		var v = f.readInteger(1);
+		data1[i0].push(f.getAsHexDump(v));
+		
+		if (i0 == 3392) {
+			debug[i0] += f.getAsBinDump(v);
+			debug2.push('' + v);
+		}
 	}
 	
 	data1.pop();
+	*/
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', data1);
+	fs.writeFileSync(outputFile+'_debug.raw', debug.join(''), 'binary');
+	fs.writeFileSync(outputFile+'_debug2.raw', debug2.join('\n'), 'binary');
 }
 
 // Noch nicht fertig
