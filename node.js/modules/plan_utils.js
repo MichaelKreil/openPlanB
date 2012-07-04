@@ -586,26 +586,49 @@ function decodePlanKANT(filename, outputFile) {
 	
 	f.checkBytes('00 00 00 00');
 	
-	var data1 = [], data2 = [];
+	var
+		list1 = [],
+		list2 = [];
 	
-	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = f.readInteger(4);
-	}
+	for (var i = 0; i < header.listLength1; i++) list1[i] = f.readInteger(4);
 
 	for (var i = 0; i < header.listLength2; i++) {
-		data2[i] = [];
-		data2[i][0] = f.readInteger(4);
-		data2[i][1] = f.readInteger(3);
-		data2[i][2] = f.readHexDump(1);
-		data2[i][3] = f.readInteger(1);
-		data2[i][4] = f.readHexDump(1);
+		list2[i] = [
+			f.readInteger(4),
+			f.readInteger(3),
+			f.readHexDump(1),
+			f.readInteger(1),
+			f.readHexDump(1)
+		];
 	}
 
 	header.bytesLeft = f.check(outputFile);
 	
+	// Structure
+	
+	var data = [];
+	var j0 = 0;
+	for (var i = 0; i < header.listLength1; i++) {
+		data[i] = {
+			bahnhofid: i,
+			kanten:[]
+		}
+		for (var j = j0; j < list1[i]; j++) data[i].kanten.push({
+			bahnhofid:list2[j][0],
+			unknown1:list2[j][1],
+			unknown2:list2[j][2],
+			dauer:list2[j][3],
+			unknown4:list2[j][4]
+		});
+		j0 = list1[i];
+	}
+	
+	// Export
+	
 	exportHeader(outputFile, header);
-	exportTSV(outputFile, '1', data1);
-	exportTSV(outputFile, '2', data2);
+	exportTSV(outputFile, '1', list1);
+	exportTSV(outputFile, '2', list2);
+	exportJSON(outputFile, 'data', data);
 }
 
 function decodePlanKGEO(filename, outputFile) {
