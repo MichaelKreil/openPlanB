@@ -49,7 +49,7 @@ function decodeFile(file, outputFolder) {
 	var outputFile = path.normalize(outputFolder + file.subfolder);
 	
 	var stats = fs.statSync(file.fullname);
-	console.log(file.filetype + '\t' + stats.size);
+	console.log(file.fullname + '\t' + stats.size);
 	
 	switch (file.filetype) {
 		case 'planatr':  decodePlanATR(  file.fullname, outputFile); break;
@@ -120,7 +120,7 @@ function decodePlanATR(filename, outputFile) {
 	header.unknown.push(f.readHexDump(4));
 
 	header.description = f.readString(header.size - f.pos);
-	/*
+
 	// Hier ist noch irgendwas broken!
 	var
 		list1 = [],
@@ -128,7 +128,7 @@ function decodePlanATR(filename, outputFile) {
 		list3 = [];
 	
 	for (var i = 0; i < header.listLength1; i++) list1[i] = [f.readInteger(2), f.readBinDump(1), f.readBinDump(1), f.readBinDump(2)];
-	
+	/*
 	if (list2BlockSize == 8) {
 		for (var i = 0; i < header.listLength2; i++) list2[i] = [f.readStringp(2), f.readHexDump(6)];
 	} else {
@@ -330,38 +330,32 @@ function decodePlanBZ(filename, outputFile) {
 	
 	header.description = f.readString(header.size - f.pos);
 	
-	/*
-	// OK, irgendwas läuft hier noch nicht
-	
 	var
-		data1 = [];
+		list1 = [],
+		debug = [],
+		debug2 = [];
 	
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [];
-		data1[i][0] = f.readInteger(4);
-		data1[i][1] = f.readInteger(2);
+		list1[i] = [i, f.readInteger(-4), f.readInteger(2)];
 	}
-	data1.push([f.length]);
+	list1.push([f.length]);
 	
 	var
 		i0 = -1,
 		i1 = -1;
 	
-	do { i1++ } while (data1[i1][0] == 4294967295);
-	var
-		debug = [],
-		debug2 = [];
+	do { i1++ } while (list1[i1][1] < 0);
 	
 	while (f.pos < f.length) {
 		if (debug[i1] === undefined) debug[i1] = '';
-		if (f.pos >= data1[i1][0]) {
-			//if ((i0 >= 0) && data1[i0].length % 2 == 1) debug[i1] += '99999999';
+		if (f.pos >= list1[i1][1]) {
+			//if ((i0 >= 0) && list1[i0].length % 2 == 1) debug[i1] += '99999999';
 			//debug[i1] += '99999999';
 			i0 = i1;
-			do { i1++ } while (data1[i1][0] == 4294967295);
+			do { i1++ } while (list1[i1][1] < 0);
 		}
 		var v = f.readInteger(1);
-		data1[i0].push(f.getAsHexDump(v));
+		list1[i0].push(f.getAsHexDump(v));
 		
 		if (i0 == 3392) {
 			debug[i0] += f.getAsBinDump(v);
@@ -369,13 +363,13 @@ function decodePlanBZ(filename, outputFile) {
 		}
 	}
 	
-	data1.pop();
-	*/
+	list1.pop();
+	
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
-	exportTSV(outputFile, '1', data1);
+	exportTSV(outputFile, '1', list1);
 	fs.writeFileSync(outputFile+'_debug.raw', debug.join(''), 'binary');
 	fs.writeFileSync(outputFile+'_debug2.raw', debug2.join('\n'), 'binary');
 }
