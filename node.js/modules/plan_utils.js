@@ -1284,9 +1284,38 @@ function exportTSV(outputFile, listName, data) {
 }
 
 function exportJSON(outputFile, listName, data) {
+	// JSON-Object in node.js fliegt manchmal auseinander. Deswegen hier per Hand:
+	
+	var createJSON = function (obj) {
+		var typ = Object.prototype.toString.call(obj);
+		switch (typ) {
+			case '[object Array]':
+				var a = [];
+				for (var i = 0; i < obj.length; i++)  {
+					a[i] = createJSON(obj[i]);
+				}
+				return '['+a.join(',')+']';
+			break;
+			case '[object Object]':
+				var a = [];
+				for (var i in obj) if (obj.hasOwnProperty(i)) {
+					a.push('"'+i+'":'+createJSON(obj[i]));
+				}
+				return '{'+a.join(',')+'}';
+			break;
+			case '[object Number]':
+				return ''+obj;
+			break;
+			case '[object String]':
+				return '"'+obj+'"';
+			break;
+			default:
+				console.log('What is "'+typ+'"?');
+		} 
+	}
 	var filename = outputFile+'_'+listName+'.json';
 	ensureFolderFor(filename);
-	fs.writeFileSync(filename, JSON.stringify(data, null, '\t'), 'utf8');
+	fs.writeFileSync(filename, createJSON(data), 'utf8');
 }
 
 function ensureFolderFor(filename) {
