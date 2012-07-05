@@ -1161,7 +1161,8 @@ function decodePlanZUG(filename, outputFile) {
 		// Feld referenziert eine 'LAUF'-id
 		data1[i][9] = f.readInteger(4);
 		data1[i][10] = f.readInteger(2);
-		data1[i][11] = f.readInteger(2);
+		if (header.blockSize > 11)
+			data1[i][11] = f.readInteger(2);
 	}
 
 	header.bytesLeft = f.check(outputFile);
