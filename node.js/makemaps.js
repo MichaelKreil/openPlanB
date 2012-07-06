@@ -45,10 +45,27 @@ for (var f in folders) if (folders.hasOwnProperty(f)) {
 }
 
 function makemap(geoFile, kantFile, folder) {
-	var svg = [];
-	svg.push('<?xml version="1.0" encoding="utf-8"?>');
-	svg.push('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">');
-	svg.push('<svg>');
+	var
+		xMin = 5,
+		xMax = 16,
+		yMin = 46,
+		yMax = 56
+		zoom = 600;
+		
+	var
+		xZoom = 1.0*zoom,
+		yZoom = 1.5*zoom,
+		width  = (xMax - xMin)*xZoom,
+		height = (yMax - yMin)*yZoom;
+	
+	var output = [];
+	/*output.push('<?xml version="1.0" encoding="utf-8"?>');
+	output.push('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">');
+	output.push('<svg version="1.1" x="0px" y="0px" width="'+width+'px" height="'+height+'px">');*/
+	output.push('push graphic-context');
+	output.push('viewbox 0 0 '+width+' '+height);
+	output.push('affine 1 0 0 1 0 0');
+	
 	
 	var geo  = JSON.parse(fs.readFileSync(geoFile , 'utf8'));
 	var kant = JSON.parse(fs.readFileSync(kantFile, 'utf8'));
@@ -63,23 +80,26 @@ function makemap(geoFile, kantFile, folder) {
 			if (id1 < id2) {
 				var px2 = geo[id2].lon;
 				var py2 = geo[id2].lat;
-				if (true || (px1>13) && (px1<14) && (py1>52.3) && (py1<52.7) &&
-					 (px2>13) && (px2<14) && (py2>52.3) && (py2<52.7)) {
-					var x1 = (px1-13)*1000;
-					var y1 = (py1-52.3)*1750;
-					var x2 = (px2-13)*1000;
-					var y2 = (py2-52.3)*1750;
-					var r = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
-					var opa = 2/(siblings[j].dauer+1);
-					if (opa > 1) opa = 1;
-					svg.push('<line stroke-width="0.1" stroke-opacity="'+opa+'" fill="none" stroke="#000000" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"/>');
-				}
+
+				var x1 = (px1 - xMin)*xZoom, y1 = (yMax - py1)*yZoom;
+				var x2 = (px2 - xMin)*xZoom, y2 = (yMax - py2)*yZoom;
+				
+				var r = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2))/zoom;
+				var opa = 10*r/(siblings[j].dauer+1);
+				if (opa > 1) opa = 1;
+				//output.push('<line stroke-width="0.02" stroke-opacity="'+opa+'" stroke="#000000" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"/>');
+				
+				output.push('push graphic-context');
+				output.push('stroke-width 1');
+				output.push('opacity '+(opa*100)+'%');
+				output.push('line '+x1+','+y1+' '+x2+','+y2);
+				output.push('pop graphic-context');
 			}
 		}
 	}
 	
-	svg.push('</svg>');
-	fs.writeFileSync(folder+'/map.svg', svg.join('\r'), 'utf8');
-	console.log('map');
+	//output.push('</svg>');	
+	output.push('pop graphic-context');
+	fs.writeFileSync(folder+'/mapkant.mvg', output.join('\r'), 'utf8');
 }
 
