@@ -329,11 +329,8 @@ function decodePlanBZ(filename, outputFile) {
 	header.unknown.push(f.readHexDump(4));
 	
 	header.description = f.readString(header.size - f.pos);
-	
 	var
-		list1 = [],
-		debug = [],
-		debug2 = [];
+		list1 = [];
 	
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = [i, f.readInteger(-4), f.readInteger(2)];
@@ -347,22 +344,13 @@ function decodePlanBZ(filename, outputFile) {
 	do { i1++ } while (list1[i1][1] < 0);
 	
 	while (f.pos < f.length) {
-		if (debug[i1] === undefined) debug[i1] = '';
 		if (f.pos >= list1[i1][1]) {
-			//if ((i0 >= 0) && list1[i0].length % 2 == 1) debug[i1] += '99999999';
-			//debug[i1] += '99999999';
 			i0 = i1;
 			do { i1++ } while (list1[i1][1] < 0);
 		}
 		var v = f.readInteger(1);
 		list1[i0].push(f.getAsHexDump(v));
-		
-		if (i0 == 3392) {
-			debug[i0] += f.getAsBinDump(v);
-			debug2.push('' + v);
-		}
 	}
-	
 	list1.pop();
 	
 	
@@ -370,8 +358,6 @@ function decodePlanBZ(filename, outputFile) {
 	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', list1);
-	fs.writeFileSync(outputFile+'_debug.raw', debug.join(''), 'binary');
-	fs.writeFileSync(outputFile+'_debug2.raw', debug2.join('\n'), 'binary');
 }
 
 // Noch nicht fertig

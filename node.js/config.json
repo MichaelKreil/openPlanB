@@ -2,6 +2,6 @@
 	"planFolder":"../../../data_files/plan_files/",
 	"decodeFolder":"../../../data_files/decoded_files/",
 	"recursive":true,
-	"folderFilter":false,
-	"planFilter":"planuk"
+	"folderFilter":"DBFahrplaninfo",
+	"planFilter":"plankbz"
 }
