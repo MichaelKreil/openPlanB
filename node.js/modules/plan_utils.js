@@ -2,6 +2,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var planBZ = require('./planbz.js');
 var planModules = {};
 
 function getAllPlanFiles(config) {
@@ -357,8 +358,9 @@ function decodePlanBZ(filename, outputFile) {
 		var xorKey = i;
 		for (var j = 0; j < list1[nextValidI][1] - list1[i][1]; ++j) {
 			xorKey = (xorKey * 0xC95 + 1) & 0xffff;
-			list2[i].push( f.getAsHexDump( f.readInteger(1) ^ (xorKey & 0xff) ) );
+			list2[i].push( f.readInteger(1) ^ (xorKey & 0xff) );
 		}
+		list2[i] = planBZ.decodePlanBZsublist(list2[i]);
 	}
 	
 	// remove dummy entry
