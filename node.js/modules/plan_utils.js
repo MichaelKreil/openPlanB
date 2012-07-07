@@ -1152,6 +1152,7 @@ function decodePlanZUG(filename, outputFile) {
 		data1[i][2] = f.readInteger(2);
 		data1[i][3] = f.readInteger(2);
 		data1[i][4] = f.readInteger(2);
+		// Zugnummer oder was aehnliches
 		data1[i][5] = f.readInteger(2);
 		data1[i][6] = f.readInteger(2);
 		data1[i][7] = f.readInteger(2);
