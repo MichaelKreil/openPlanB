@@ -2,6 +2,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var planBZ = require('./planbz.js');
 var planModules = {};
 
 function getAllPlanFiles(config) {
@@ -331,34 +332,45 @@ function decodePlanBZ(filename, outputFile) {
 	
 	header.description = f.readString(header.size - f.pos);
 	var
-		list1 = [];
+		list1 = [],
+		list2 = [];
 	
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = [i, f.readInteger(-4), f.readInteger(2)];
 	}
-	list1.push([f.length]);
+	// add dummy entry
+	list1.push([-1,f.length])
 	
-	var
-		i0 = -1,
-		i1 = -1;
-	
-	do { i1++ } while (list1[i1][1] < 0);
-	
-	while (f.pos < f.length) {
-		if (f.pos >= list1[i1][1]) {
-			i0 = i1;
-			do { i1++ } while (list1[i1][1] < 0);
+	for (var i = 0; i < list1.length - 1; ++i) {
+		list2[i] = [];
+		if (list1[i][1] < 0)
+			continue;
+
+		var nextValidI = i+1;
+		while (list1[nextValidI][1] < 0 && nextValidI < list1.length) {
+			++nextValidI;
 		}
-		var v = f.readInteger(1);
-		list1[i0].push(f.getAsHexDump(v));
+
+		if (nextValidI == list1.length) {
+			throw "could not find next offset";
+		}
+
+		var xorKey = i;
+		for (var j = 0; j < list1[nextValidI][1] - list1[i][1]; ++j) {
+			xorKey = (xorKey * 0xC95 + 1) & 0xffff;
+			list2[i].push( f.readInteger(1) ^ (xorKey & 0xff) );
+		}
+		list2[i] = planBZ.decodePlanBZsublist(list2[i]);
 	}
-	list1.pop();
 	
+	// remove dummy entry
+	list1.pop();
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', list1);
+	exportTSV(outputFile, '2', list2);
 }
 
 // Noch nicht fertig
@@ -1140,6 +1152,7 @@ function decodePlanZUG(filename, outputFile) {
 		data1[i][2] = f.readInteger(2);
 		data1[i][3] = f.readInteger(2);
 		data1[i][4] = f.readInteger(2);
+		// Zugnummer oder was aehnliches
 		data1[i][5] = f.readInteger(2);
 		data1[i][6] = f.readInteger(2);
 		data1[i][7] = f.readInteger(2);
