@@ -1346,7 +1346,7 @@ function exportJSON(outputFile, listName, data) {
 				for (var i = 0; i < obj.length; i++)  {
 					a[i] = createJSON(obj[i]);
 				}
-				return '['+a.join(', \n')+']';
+				return '['+a.join(',')+']';
 			break;
 			case '[object Object]':
 				var a = [];
