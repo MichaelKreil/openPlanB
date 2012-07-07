@@ -1,7 +1,7 @@
 {
-	"planFolder":"../../../data_files/plan_files/",
-	"decodeFolder":"../../../data_files/decoded_files/",
+	"planFolder":"../../../data/plan_files/",
+	"decodeFolder":"../../../data/decoded_files/",
 	"recursive":true,
 	"folderFilter":"DBFahrplaninfo",
-	"planFilter":"plankbz"
+	"planFilter":"planbz"
 }
