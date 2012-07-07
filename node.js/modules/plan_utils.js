@@ -340,7 +340,6 @@ function decodePlanBZ(filename, outputFile) {
 	// add dummy entry
 	list1.push([-1,f.length])
 	
-	var xorIndex = 0;
 	for (var i = 0; i < list1.length - 1; ++i) {
 		list2[i] = [];
 		if (list1[i][1] < 0)
@@ -355,12 +354,11 @@ function decodePlanBZ(filename, outputFile) {
 			throw "could not find next offset";
 		}
 
-		var xorKey = xorIndex;
+		var xorKey = i;
 		for (var j = 0; j < list1[nextValidI][1] - list1[i][1]; ++j) {
 			xorKey = (xorKey * 0xC95 + 1) & 0xffff;
 			list2[i].push( f.getAsHexDump( f.readInteger(1) ^ (xorKey & 0xff) ) );
 		}
-		xorIndex++;
 	}
 	
 	// remove dummy entry
