@@ -31,12 +31,12 @@ function decodePlanBZsublist(list) {
 			
 			if ((byte & 0xf8) == 0xf8) {
 				depTime = dateWord & ~0xf800;
-			} else if ((byte & 0xf0) == 0xf0) {
-				arrTime = dateWord & ~0xf000;
 			} else {
-				var diff = dateWord >> 0x0b;
-				arrTime = dateWord & 0x7ff;
-				depTime = arrTime + diff;
+				arrTime = dateWord & ~0xf000;
+				if ((byte & 0xf0) != 0xf0) {
+					var diff = dateWord >> 11;
+					depTime = arrTime + diff;
+				}
 			}
 			
 			// if we have no explicit train id, it is last id plus 1
