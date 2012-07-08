@@ -465,6 +465,7 @@ function decodePlanGLS(filename, outputFile) {
 		
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
+		// Zug-ID
 		data1[i][0] = f.readInteger(4);
 		data1[i][1] = f.readInteger(2);
 		data1[i][2] = f.readInteger(4);
@@ -474,13 +475,18 @@ function decodePlanGLS(filename, outputFile) {
 		data2[i] = [];
 		var n = f.readInteger(integerByteCount);
 		for (var j = 0; j < n; j++) {
-			data2[i].push(f.readHexDump(2));
+			// referenziert Nummer des Haltepunkt auf Lauf des Zuges
+			data2[i].push(f.readInteger(1));
+			// Flags?
+			data2[i].push(f.readHexDump(1));
+			// Position in Liste 3
 			data2[i].push(f.readInteger(integerByteCount));
 		}
 	}
 	
 	for (var i = 0; i < header.listLength3; i++) {
 		data3[i] = [];
+		// Position in Liste 4
 		data3[i].push(f.readInteger(2));
 		data3[i].push(f.readInteger(integerByteCount));
 	}
