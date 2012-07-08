@@ -1351,20 +1351,25 @@ function exportTSV(outputFile, listName, data) {
 function exportJSON(outputFile, listName, data) {
 	// JSON-Object in node.js fliegt manchmal auseinander. Deswegen hier per Hand:
 	
-	var createJSON = function (obj) {
+	var createJSON = function (obj, indent) {
 		var typ = Object.prototype.toString.call(obj);
 		switch (typ) {
 			case '[object Array]':
+				if (obj.length == 0) return '[]';
 				var a = [];
 				for (var i = 0; i < obj.length; i++)  {
-					a[i] = createJSON(obj[i]);
+					a[i] = createJSON(obj[i], indent+'\t');
 				}
-				return '['+a.join(',')+']';
+				if (indent === undefined) {
+					return '['+a.join(',')+']';
+				} else {
+					return '[\r\t' + indent + a.join(',\r\t'+indent) + '\r' + indent + ']';
+				}
 			break;
 			case '[object Object]':
 				var a = [];
 				for (var i in obj) if (obj.hasOwnProperty(i)) {
-					a.push('"'+i+'":'+createJSON(obj[i]));
+					a.push('"'+i+'":'+createJSON(obj[i], indent));
 				}
 				return '{'+a.join(',')+'}';
 			break;
@@ -1380,7 +1385,7 @@ function exportJSON(outputFile, listName, data) {
 	}
 	var filename = outputFile+'_'+listName+'.json';
 	ensureFolderFor(filename);
-	fs.writeFileSync(filename, createJSON(data), 'utf8');
+	fs.writeFileSync(filename, createJSON(data, ''), 'utf8');
 }
 
 function ensureFolderFor(filename) {
