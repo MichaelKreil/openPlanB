@@ -1283,19 +1283,31 @@ function decodePlanW(filename, outputFile) {
 	
 	header.description = f.readString(header.size - f.pos);
 	
-	var
-		data1 = [],
-		data2 = [];
+	var list1 = [];
+	for (var i = 0; i < header.listLength1; i++) {
+		list1[i] = f.readInteger(header.blockSize1);
+		if (list1[i] != i) console.warning('WARNING: unerwartete IDs')
+	}
+	exportTSV(outputFile, '1', list1);
 	
-	for (var i = 0; i < header.listLength1; i++) data1[i] = f.readInteger(header.blockSize1);
+	var list2 = [];
+	for (var i = 0; i < header.listLength2; i++) {
+		list2[i] = f.readBinDump(header.blockSize2);
+	}
+	exportTSV(outputFile, '2', list2);
 	
-	for (var i = 0; i < header.listLength2; i++) data2[i] = f.readBinDump(header.blockSize2);
+	var data = [];
+	//var n = 
+	for (var i = 0; i < header.listLength2; i++) {
+		//data[i] = f.readBinDump(header.blockSize2);
+	}
+	exportJSON(outputFile, 'data', data);
+	
+	
 
 	header.bytesLeft = f.check(outputFile);
 	
 	exportHeader(outputFile, header);
-	exportTSV(outputFile, '1', data1);
-	exportTSV(outputFile, '2', data2);
 }
 
 function decodePlanZUG(filename, outputFile) {
