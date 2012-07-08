@@ -44,7 +44,7 @@ function decodePlanBZsublist(list) {
 				trainId = lastTrain[0] + 1;
 			}
 			
-			var trainObj = [trainId, prettyTime(arrTime), prettyTime(depTime)];
+			var trainObj = [trainId, arrTime, depTime];
 			listOfTrains.push(trainObj);
 			lastTrain = trainObj;
 			trainId = -1;
@@ -91,7 +91,7 @@ function decodePlanBZsublist(list) {
 				depTime = parseDateWord(dateWord);
 			}
 			
-			var trainObj = [trainId, prettyTime(arrTime), prettyTime(depTime)];
+			var trainObj = [trainId, arrTime, depTime];
 			listOfTrains.push(trainObj);
 			lastTrain = trainObj;
 			trainId = -1;
