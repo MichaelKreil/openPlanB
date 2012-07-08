@@ -343,8 +343,8 @@ function decodePlanBZ(filename, outputFile) {
 	
 	for (var i = 0; i < list1.length - 1; ++i) {
 		list2[i] = [];
-		if (list1[i][1] < 0)
-			continue;
+		
+		if (list1[i][1] < 0) continue;
 
 		var nextValidI = i+1;
 		while (list1[nextValidI][1] < 0 && nextValidI < list1.length) {
@@ -355,12 +355,14 @@ function decodePlanBZ(filename, outputFile) {
 			throw "could not find next offset";
 		}
 
+		var timeList = [];
 		var xorKey = i;
 		for (var j = 0; j < list1[nextValidI][1] - list1[i][1]; ++j) {
 			xorKey = (xorKey * 0xC95 + 1) & 0xffff;
-			list2[i].push( f.readInteger(1) ^ (xorKey & 0xff) );
+			timeList.push( f.readInteger(1) ^ (xorKey & 0xff) );
 		}
-		list2[i] = planBZ.decodePlanBZsublist(list2[i]);
+		
+		list2[i] = planBZ.decodePlanBZsublist(timeList);
 	}
 	
 	// remove dummy entry
@@ -371,6 +373,18 @@ function decodePlanBZ(filename, outputFile) {
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', list1);
 	exportTSV(outputFile, '2', list2);
+	
+	var data = [];
+	
+	for (var i = 0; i < list1.length - 1; ++i) {
+		var timeList = list2[i];
+		for (var j = 0; j < timeList.length; j++) {
+			var tupel = timeList[j];
+			timeList[j] = {trainId: tupel[0], arr: tupel[1], dep:tupel[1]};
+		}
+		data[i] = { id:i, times:timeList };
+	}
+	exportJSON(outputFile, 'data', data);
 }
 
 // Noch nicht fertig
