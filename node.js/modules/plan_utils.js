@@ -56,6 +56,7 @@ function decodeFile(file, outputFolder) {
 		case 'planatr':  decodePlanATR(  file.fullname, outputFile); break;
 		case 'planb':    decodePlanB(    file.fullname, outputFile); break;
 		case 'planbetr': decodePlanBETR( file.fullname, outputFile); break;
+		case 'planbi':   decodePlanBI(   file.fullname, outputFile); break;
 		case 'planbz':   decodePlanBZ(   file.fullname, outputFile); break;
 		case 'plancon':  decodePlanCON(  file.fullname, outputFile); break;
 		case 'plangat':  decodePlanGAT(  file.fullname, outputFile); break;
@@ -310,6 +311,49 @@ function decodePlanBETR(filename, outputFile) {
 	exportTSV(outputFile, '2', data2);
 	exportTSV(outputFile, '3', data3);
 	exportTSV(outputFile, '4', data4);
+}
+
+function decodePlanBI(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	header.unknown.push(f.readInteger(2));
+	header.listLength1 = f.readInteger(4);
+	header.listLength2 = f.readInteger(4);
+	header.unknown.push(f.readInteger(2));
+	header.unknown.push(f.readInteger(4));
+	
+	header.unknown.push(f.readHexDump(4));
+	
+	header.description = f.readString(header.size - f.pos);
+	
+	var list1 = [];
+	for (var i = 0; i < header.listLength1; i++) {
+		list1[i] = [
+			i,
+			f.readInteger(4),
+			f.readInteger(4)
+		];
+	}
+	exportTSV(outputFile, '1', list1);
+	
+	var list2 = [];
+	for (var i = 0; i < header.listLength2; i++) {
+		list2[i] = [
+			i,
+			f.readBinDump(4)
+		];
+	}
+	exportTSV(outputFile, '2', list2);
+	
+	header.bytesLeft = f.check(outputFile);
+	
+	exportHeader(outputFile, header);
 }
 
 function decodePlanBZ(filename, outputFile) {
