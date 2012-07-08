@@ -777,6 +777,22 @@ function decodePlanLAUF(filename, outputFile) {
 	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', data1);
+	
+	// Datenstruktur erzeugen
+	// nach dem TSV-Export, damit der Array gespliced werden kann
+	
+	var
+		data = [];
+		
+	for (var i = 0; i < data1.length; i++) {
+		data[i] = {
+			id: i,
+			unknown1: data1[i][0],
+			stops: data1[i].splice(2)
+		}
+	}
+	
+	exportJSON(outputFile, 'data', data);
 }
 
 function decodePlanLINE(filename, outputFile) {
