@@ -17,7 +17,9 @@ var folders = [];
 
 scan(inputFolder);
 	
-drawKant();
+	
+drawBz();
+//drawKant();
 
 
 
@@ -37,6 +39,158 @@ function scan(fol) {
 	} else if (recursive && stats.isDirectory()) {
 		var f = fs.readdirSync(fol);
 		for (var i = 0; i < f.length; i++) scan(fol + '/' + f[i]);
+	}
+}
+
+function drawBz() {
+	
+	for (var f in folders) if (folders.hasOwnProperty(f)) {
+		var folder = folders[f];
+		if ((folder.files['plankgeo_data.json']) && (folder.files['planbz_data.json'])) {
+			console.log(f);
+			drawMap(folder.files['plankgeo_data.json'], folder.files['planbz_data.json'], folder.folder+'/frames');
+		}
+	}
+	
+	function drawMap(geoFile, bzFile, folder) {
+		var
+			xMin = 12.8,
+			xMax = 14,
+			yMin = 52.2,
+			yMax = 52.8
+			zoom = 2000;
+			
+		var
+			xZoom = 0.6*zoom,
+			yZoom = 1.0*zoom,
+			width  = Math.round((xMax - xMin)*xZoom),
+			height = Math.round((yMax - yMin)*yZoom);
+		
+		console.log('Load Geo');
+		var geo = JSON.parse(fs.readFileSync(geoFile, 'utf8'));
+		
+		console.log('Load BZ');
+		var bz  = JSON.parse(fs.readFileSync( bzFile, 'utf8'));
+		
+		console.log('Prepare stuff');
+		
+		var sys = require('util');
+		var exec = require('child_process').exec;
+		ensureFolderFor(folder+'/mapkant.mvg');
+		
+		// times by station -> times by trains
+		var temp = [];
+		for (var i = 0; i < bz.length; i++) {
+			var stationId = bz[i].id;
+			var times = bz[i].times;
+			for (var j = 0; j < times.length; j++) {
+				var tupel = times[j];
+				if ((tupel.arr > 0) || (tupel.dep > 0)) {
+					var trainId = tupel.trainId;
+					if (temp[trainId] === undefined) temp[trainId] = [];
+					temp[trainId].push({
+						stationId:stationId,
+						t0:tupel.arr,
+						t1:tupel.dep
+					});
+				}
+			}
+		}
+		
+		// sort trains
+		var trains = [];
+		for (var i = 0; i < temp.length; i++) {
+			if (temp[i] !== undefined) {
+				temp[i].sort(function(a,b) {
+					return a.t0 - b.t0;
+				});
+				
+				var oldList = temp[i];
+				var newList = [oldList[0]];
+				
+				for (var j = 1; j < oldList.length; j++) {
+					if (oldList[j].t0 > oldList[j-1].t0) newList.push(oldList[j]);
+				}
+				
+				for (var j = 0; j < newList.length; j++) {
+					var r = (newList[j].stationId % 100)/100; 
+					if (newList[j].t0 >= 0) newList[j].t0 = Math.round(newList[j].t0*60 - r*20 - 10);
+					if (newList[j].t1 >= 0) newList[j].t1 = Math.round(newList[j].t1*60 + r*20 + 10);
+				}
+				
+				trains.push(newList);
+			}
+		}
+		temp = undefined;
+		
+		fs.writeFileSync(folder+'/temp.json', JSON.stringify(trains, null, '\t'), 'binary');
+		
+		// prepare geo
+		
+		for (var i = 0; i < geo.length; i++) {
+			geo[i].x = (geo[i].lon - xMin)*xZoom;
+			geo[i].y = (yMax - geo[i].lat)*yZoom;
+		}
+		
+		var tasks = [];
+		for (var i = 0; i < 1440; i++) {
+			drawFrame(0 + i*60, i);
+		}
+		fs.writeFileSync(folder+'/mapkant.sh', tasks.join('\n'), 'binary');
+		
+		
+		function drawFrame(time, frameNo) {
+			console.log('draw '+frameNo);
+			var output = [];
+			output.push('push graphic-context');
+			output.push('viewbox 0 0 '+width+' '+height);
+			output.push('affine 1 0 0 1 0 0');
+			
+			for (var i = 0; i < trains.length; i++) {
+				var stations = trains[i];
+				var n = stations.length;
+				
+				var x = -1000, y = -1000;
+				
+				if (time < stations[0].t1) {
+					// did not departure
+				} else if (time > stations[n-1].t0) {
+					// already arrived
+				} else {
+					// on the track
+					for (var j = 0; j < n-1; j++) {
+						if (time >= stations[j].t1) {
+							var s0 = stations[j  ];
+							var s1 = stations[j+1];
+							
+							//	 console.log(s0.stationId, s1);
+							
+							x = (geo[s1.stationId].x - geo[s0.stationId].x)*((time - s0.t1)/(s1.t0 - s0.t1)) +  geo[s0.stationId].x;
+							y = (geo[s1.stationId].y - geo[s0.stationId].y)*((time - s0.t1)/(s1.t0 - s0.t1)) +  geo[s0.stationId].y;
+							break;
+						}
+					}
+				}
+				
+				if ((x >= 0) && (y >= 0) && (x <= width) && (y <= height)) {
+					output.push('push graphic-context');
+					output.push('stroke-width 0');
+					//output.push('opacity '+(opa*100)+'%');
+					output.push('circle '+(x-1)+','+(y-1)+' '+(x+1)+','+(y+1));
+					output.push('pop graphic-context');
+				}
+			}
+			
+			output.push('pop graphic-context');
+			
+			
+			fs.writeFileSync(folder+'/mapkant'+frameNo+'.mvg', output.join('\r'), 'binary');
+			// http://nodejs.org/api.html#_child_processes
+			
+			var task = folder.split(' ').join('\\ ');
+			task = 'convert -size '+width+'x'+height+' '+task+'/mapkant'+frameNo+'.mvg '+task+'/mapkant'+frameNo+'.png';
+			tasks.push(task);
+		}
 	}
 }
 
@@ -106,6 +260,14 @@ function drawKant() {
 		
 		//output.push('</svg>');	
 		output.push('pop graphic-context');
-		fs.writeFileSync(folder+'/mapkant.mvg', output.join('\r'), 'utf8');
+		fs.writeFileSync(folder+'/mapkant.mvg', output.join('\r'), 'binary');
+	}
+}
+
+function ensureFolderFor(filename) {
+	var dirname = path.dirname(filename);
+	if (!fs.existsSync(dirname)) {
+		ensureFolderFor(dirname);
+		fs.mkdirSync(dirname);
 	}
 }
