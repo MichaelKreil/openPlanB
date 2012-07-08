@@ -498,11 +498,34 @@ function decodePlanGLS(filename, outputFile) {
 	
 	header.bytesLeft = f.check(outputFile);
 	
+	// Datenstruktur erzeugen
+	var
+		data = [];
+	
+	if (data1.length != data2.length)
+		throw "expected lists of same size";
+		
+	for (var i = 0; i < data1.length; i++) {
+		data[i] = {
+			id: i,
+			zugId: data1[i][0],
+			platformAtStops: []
+		}
+		for (var j = 0; j < data2[i].length / 3; ++j) {
+			var stopData = {
+				stopNumber: data2[i][3 * j],
+				platform: data4[ data3[ data2[i][3 * j + 2] ] [0] ].trim()
+			};
+			data[i].platformAtStops.push(stopData);
+		}
+	}
+	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', data1);
 	exportTSV(outputFile, '2', data2);
 	exportTSV(outputFile, '3', data3);
 	exportTSV(outputFile, '4', data4);
+	exportJSON(outputFile, 'data', data);
 }
 
 function decodePlanGAT(filename, outputFile) {
