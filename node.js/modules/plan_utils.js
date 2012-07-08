@@ -380,7 +380,7 @@ function decodePlanBZ(filename, outputFile) {
 		var timeList = list2[i];
 		for (var j = 0; j < timeList.length; j++) {
 			var tupel = timeList[j];
-			timeList[j] = {trainId: tupel[0], arr: tupel[1], dep:tupel[1]};
+			timeList[j] = {trainId: tupel[0], arr: tupel[1], dep:tupel[2]};
 		}
 		data[i] = { id:i, times:timeList };
 	}
