@@ -479,6 +479,7 @@ function decodePlanGLS(filename, outputFile) {
 		
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
+		// Zug-ID
 		data1[i][0] = f.readInteger(4);
 		data1[i][1] = f.readInteger(2);
 		data1[i][2] = f.readInteger(4);
@@ -488,13 +489,18 @@ function decodePlanGLS(filename, outputFile) {
 		data2[i] = [];
 		var n = f.readInteger(integerByteCount);
 		for (var j = 0; j < n; j++) {
-			data2[i].push(f.readHexDump(2));
+			// referenziert Nummer des Haltepunkt auf Lauf des Zuges
+			data2[i].push(f.readInteger(1));
+			// Flags?
+			data2[i].push(f.readHexDump(1));
+			// Position in Liste 3
 			data2[i].push(f.readInteger(integerByteCount));
 		}
 	}
 	
 	for (var i = 0; i < header.listLength3; i++) {
 		data3[i] = [];
+		// Position in Liste 4
 		data3[i].push(f.readInteger(2));
 		data3[i].push(f.readInteger(integerByteCount));
 	}
@@ -506,11 +512,34 @@ function decodePlanGLS(filename, outputFile) {
 	
 	header.bytesLeft = f.check(outputFile);
 	
+	// Datenstruktur erzeugen
+	var
+		data = [];
+	
+	if (data1.length != data2.length)
+		throw "expected lists of same size";
+		
+	for (var i = 0; i < data1.length; i++) {
+		data[i] = {
+			id: i,
+			zugId: data1[i][0],
+			platformAtStops: []
+		}
+		for (var j = 0; j < data2[i].length / 3; ++j) {
+			var stopData = {
+				stopNumber: data2[i][3 * j],
+				platform: data4[ data3[ data2[i][3 * j + 2] ] [0] ].trim()
+			};
+			data[i].platformAtStops.push(stopData);
+		}
+	}
+	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', data1);
 	exportTSV(outputFile, '2', data2);
 	exportTSV(outputFile, '3', data3);
 	exportTSV(outputFile, '4', data4);
+	exportJSON(outputFile, 'data', data);
 }
 
 function decodePlanGAT(filename, outputFile) {
@@ -785,6 +814,22 @@ function decodePlanLAUF(filename, outputFile) {
 	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', data1);
+	
+	// Datenstruktur erzeugen
+	// nach dem TSV-Export, damit der Array gespliced werden kann
+	
+	var
+		data = [];
+		
+	for (var i = 0; i < data1.length; i++) {
+		data[i] = {
+			id: i,
+			unknown1: data1[i][0],
+			stops: data1[i].splice(2)
+		}
+	}
+	
+	exportJSON(outputFile, 'data', data);
 }
 
 function decodePlanLINE(filename, outputFile) {
@@ -1160,9 +1205,18 @@ function decodePlanZUG(filename, outputFile) {
 		data1[i][0] = f.readBinDump(2);
 	}
 	header.blockSize = (f.length - f.pos)/(2*header.listLength1);
+	
+	// strange: block size seems to vary
+	if (header.blockSize != 11 && header.blockSize != 12) {
+		throw "don't know how to handle blockSize " + header.blockSize;
+	}
 
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i][1] = f.readInteger(2);
+		// guess that blockSizes affects size of first integer might be wrong
+		if (header.blockSize == 12)
+			data1[i][1] = f.readInteger(4);
+		else
+			data1[i][1] = f.readInteger(2);
 		data1[i][2] = f.readInteger(2);
 		data1[i][3] = f.readInteger(2);
 		data1[i][4] = f.readInteger(2);
@@ -1170,18 +1224,37 @@ function decodePlanZUG(filename, outputFile) {
 		data1[i][5] = f.readInteger(2);
 		data1[i][6] = f.readInteger(2);
 		data1[i][7] = f.readInteger(2);
-		data1[i][8] = f.readInteger(2);
-		// Feld referenziert eine 'LAUF'-id
-		data1[i][9] = f.readInteger(4);
+		data1[i][8] = f.readInteger(4);
+		data1[i][9] = f.readInteger(2);
 		data1[i][10] = f.readInteger(2);
-		if (header.blockSize > 11)
-			data1[i][11] = f.readInteger(2);
 	}
 
 	header.bytesLeft = f.check(outputFile);
 	
+	// Datenstruktur erzeugen
+	var
+		data = [];
+	
+	for (var i = 0; i < data1.length; i++) {
+		data[i] = {
+			id: i,
+			laufId: data1[i][8],
+			unknown1: data1[i][0],
+			unknown2: data1[i][1],
+			unknown3: data1[i][2],
+			unknown4: data1[i][3],
+			unknown5: data1[i][4],
+			unknown6: data1[i][5],
+			unknown7: data1[i][6],
+			unknown8: data1[i][7],
+			unknown9: data1[i][9],
+			unknown10: data1[i][10]
+		}
+	}
+	
 	exportHeader(outputFile, header);
 	exportTSV(outputFile, '1', data1);
+	exportJSON(outputFile, 'data', data);
 }
 
 
