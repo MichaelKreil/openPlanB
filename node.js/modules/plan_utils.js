@@ -384,6 +384,7 @@ function decodePlanBZ(filename, outputFile) {
 		}
 		data[i] = { id:i, times:timeList };
 	}
+	//data = [data[651]];
 	exportJSON(outputFile, 'data', data);
 }
 
@@ -991,20 +992,22 @@ function decodePlanU(filename, outputFile) {
 		data2 = [];
 	
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [];
-		data1[i][0] = f.readInteger(4);
-		data1[i][1] = f.readInteger(2);
-		data1[i][2] = f.readInteger(2);
+		data1[i] = [
+			f.readInteger(4), // Bahnhof-Id
+			f.readInteger(2),
+			f.readInteger(2)
+		];
 	}
 	for (var i = 0; i < header.listLength2; i++) {
-		data2[i] = [];
-		data2[i][0] = f.readInteger(4);
-		data2[i][1] = f.readInteger(4);
-		data2[i][2] = f.readInteger(2);
-		data2[i][3] = f.readInteger(4);
-		data2[i][4] = f.readInteger(2);
-		data2[i][5] = f.readInteger(1);
-		data2[i][6] = f.readInteger(1);
+		data2[i] = [
+			f.readInteger(4), // Bahnhof-Id
+			f.readInteger(4),
+			f.readInteger(2),
+			f.readInteger(4),
+			f.readInteger(2),
+			f.readInteger(1),
+			f.readInteger(1)
+		];
 	}
 	
 	f.checkBytes('FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF');
@@ -1057,13 +1060,35 @@ function decodePlanUK(filename, outputFile) {
 		data3 = [],
 		data4 = [];
 		
-	for (var i = 0; i < header.listLength1; i++) data1[i] = [f.readInteger(2), f.readInteger(2)];
+	for (var i = 0; i < header.listLength1; i++) {
+		data1[i] = [
+			f.readInteger(2), // Anzahl der Einträge in Liste 2
+			f.readInteger(2)  // Id des ersten Eintrages in Liste 2
+		];
+	}
 	
-	for (var i = 0; i < header.listLength2; i++) data2[i] = [f.readInteger(2), f.readInteger(2), f.readInteger(header.list2Block3Size)];
+	for (var i = 0; i < header.listLength2; i++) {
+		data2[i] = [
+			f.readInteger(2), // Erster  Eintrag in Liste 1
+			f.readInteger(2), // Letzter Eintrag in Liste 1
+			f.readInteger(header.list2Block3Size) // Id eines Eintrages in Liste 3
+		];
+	}
 	
-	for (var i = 0; i < header.listLength3; i++) data3[i] = f.readInteger(-2);
+	for (var i = 0; i < header.listLength3; i++) {
+		data3[i] = [
+			f.readInteger(-2)
+		];
+	}
 	
-	for (var i = 0; i < header.listLength4; i++) data4[i] = [f.readInteger(-4), f.readInteger(2), f.readInteger(2), f.readInteger(2)];
+	for (var i = 0; i < header.listLength4; i++) {
+		data4[i] = [
+			f.readInteger(4), // Bahnhof-Id
+			f.readInteger(2), // Erster  Eintrag in Liste 1
+			f.readInteger(2), // Letzer  Eintrag in Liste 1
+			f.readInteger(2)  // irgendwas zwischen 0 und 99
+		];
+	}
 
 	header.bytesLeft = f.check(outputFile);
 	exportHeader(outputFile, header);
