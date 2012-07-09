@@ -1262,7 +1262,8 @@ function decodePlanW(filename, outputFile) {
 			header.listLength1 = f.readInteger(2);
 			header.listLength2 = f.readInteger(2);
 			header.blockSize2 = f.readInteger(2);
-			header.unknown.push(f.readHexDump(4));
+			header.validityBegin = f.readInteger(2);
+			header.validityEnd = f.readInteger(2);
 			header.unknown.push(f.readInteger(2));
 			header.blockSize1 = 2;
 		break;
@@ -1270,7 +1271,8 @@ function decodePlanW(filename, outputFile) {
 			header.listLength1 = f.readInteger(4);
 			header.listLength2 = f.readInteger(4);
 			header.blockSize2 = f.readInteger(2);
-			header.unknown.push(f.readHexDump(4));
+			header.validityBegin = f.readInteger(2);
+			header.validityEnd = f.readInteger(2);
 			header.unknown.push(f.readInteger(4));
 			header.blockSize1 = 4;
 		break;
@@ -1286,7 +1288,7 @@ function decodePlanW(filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = f.readInteger(header.blockSize1);
-		if (list1[i] != i) console.warning('WARNING: unerwartete IDs')
+		if (list1[i] != i) console.warn('WARNING: unerwartete IDs')
 	}
 	exportTSV(outputFile, '1', list1);
 	
@@ -1324,7 +1326,8 @@ function decodePlanZUG(filename, outputFile) {
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(4));
 	
-	header.unknown.push(f.readHexDump(4));
+	header.validityBegin = f.readInteger(2);
+	header.validityEnd = f.readInteger(2);
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -1544,10 +1547,21 @@ function PlanFile(filename) {
 }
 
 
+function validityToDate(d) {
+	// validity is given as the number of days since Dec 31, 1979
+	var start = new Date(1979,11,31);
+	var realDate = new Date(start.getTime() + d * 86400000);
+	return realDate.toDateString();
+}
+
 
 function exportHeader(outputFile, data) {
 	var filename = outputFile+'_header.json';
 	ensureFolderFor(filename);
+	if (data.validityBegin)
+		data.validityBegin = validityToDate(data.validityBegin);
+	if (data.validityEnd)
+		data.validityEnd = validityToDate(data.validityEnd);
 	fs.writeFileSync(filename, JSON.stringify(data, null, '\t'), 'utf8');
 }
 
