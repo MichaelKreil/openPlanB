@@ -1322,9 +1322,11 @@ function decodePlanZUG(filename, outputFile) {
 	header.creationDate = f.readTimestamp();
 	
 	header.listLength1 = f.readInteger(4);
+	// number of routes in LAUF list1
+	header.numberOfRoutes = f.readInteger(4);
 	header.unknown.push(f.readInteger(4));
-	header.unknown.push(f.readInteger(4));
-	header.unknown.push(f.readInteger(4));
+	// number of stations in B list1
+	header.numberOfStations = f.readInteger(4);
 	
 	header.validityBegin = f.readInteger(2);
 	header.validityEnd = f.readInteger(2);
