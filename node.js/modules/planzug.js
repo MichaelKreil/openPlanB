@@ -43,14 +43,20 @@ function decodePlanZUG(filename, outputFile) {
 			data1[i][1] = f.readInteger(2);
 		data1[i][2] = f.readInteger(2);
 		data1[i][3] = f.readInteger(2);
+		// train number OR offset in ATR, list 1
+		// interpretation offset iff data1[i][6]==0
+		// for S-Bahn-trains something strange happens to this number
 		data1[i][4] = f.readInteger(2);
-		// Zugnummer oder was aehnliches
-		data1[i][5] = f.readInteger(2);
-		data1[i][6] = f.readInteger(2);
+		// UNKNOWN
+		data1[i][5] = f.readInteger(1);
+		// train type OR indicator for data1[i][4]
+		data1[i][6] = f.readInteger(1);
 		data1[i][7] = f.readInteger(2);
-		data1[i][8] = f.readInteger(4);
-		data1[i][9] = f.readInteger(2);
+		data1[i][8] = f.readInteger(2);
+		// route of this train (references a LAUF id)
+		data1[i][9] = f.readInteger(4);
 		data1[i][10] = f.readInteger(2);
+		data1[i][11] = f.readInteger(2);
 	}
 
 	header.bytesLeft = f.check(outputFile);
@@ -62,7 +68,7 @@ function decodePlanZUG(filename, outputFile) {
 	for (var i = 0; i < data1.length; i++) {
 		data[i] = {
 			id: i,
-			laufId: data1[i][8],
+			laufId: data1[i][9],
 			unknown1: data1[i][0],
 			unknown2: data1[i][1],
 			unknown3: data1[i][2],
@@ -71,8 +77,9 @@ function decodePlanZUG(filename, outputFile) {
 			unknown6: data1[i][5],
 			unknown7: data1[i][6],
 			unknown8: data1[i][7],
-			unknown9: data1[i][9],
-			unknown10: data1[i][10]
+			unknown9: data1[i][8],
+			unknown10: data1[i][10],
+			unknown11: data1[i][11]
 		}
 	}
 	
