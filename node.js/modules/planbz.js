@@ -1,4 +1,83 @@
 "use strict";
+var planUtils = require('./plan_utils.js');
+
+function decodePlanBZ(filename, outputFile) {
+	var header = {unknown:[]};
+	
+	var f = new planUtils.PlanFile(filename);
+	
+	header.size = f.readInteger(2);
+	header.version = f.readInteger(2) + '.' + f.readInteger(2);
+	header.creationDate = f.readTimestamp();
+	
+	header.subEntryCount = f.readInteger(4);
+	header.unknown.push(f.readInteger(1));	
+	header.unknown.push(f.readInteger(1));	
+	header.unknown.push(f.readInteger(2));	
+	header.unknown.push(f.readInteger(2));	
+	header.listLength1 = f.readInteger(4);
+	header.unknown.push(f.readInteger(4));
+	
+	header.unknown.push(f.readHexDump(4));
+	
+	header.description = f.readString(header.size - f.pos);
+	var
+		list1 = [],
+		list2 = [];
+	
+	for (var i = 0; i < header.listLength1; i++) {
+		list1[i] = [i, f.readInteger(-4), f.readInteger(2)];
+	}
+	// add dummy entry
+	list1.push([-1,f.length])
+	
+	for (var i = 0; i < list1.length - 1; ++i) {
+		list2[i] = [];
+		
+		if (list1[i][1] < 0) continue;
+
+		var nextValidI = i+1;
+		while (list1[nextValidI][1] < 0 && nextValidI < list1.length) {
+			++nextValidI;
+		}
+
+		if (nextValidI == list1.length) {
+			throw "could not find next offset";
+		}
+
+		var timeList = [];
+		var xorKey = i;
+		for (var j = 0; j < list1[nextValidI][1] - list1[i][1]; ++j) {
+			xorKey = (xorKey * 0xC95 + 1) & 0xffff;
+			timeList.push( f.readInteger(1) ^ (xorKey & 0xff) );
+		}
+		
+		list2[i] = decodePlanBZsublist(timeList);
+	}
+	
+	// remove dummy entry
+	list1.pop();
+	
+	header.bytesLeft = f.check(outputFile);
+	
+	planUtils.exportHeader(outputFile, header);
+	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '2', list2);
+	
+	var data = [];
+	
+	for (var i = 0; i < list1.length - 1; ++i) {
+		var timeList = list2[i];
+		for (var j = 0; j < timeList.length; j++) {
+			var tupel = timeList[j];
+			timeList[j] = {trainId: tupel[0], arr: tupel[1], dep:tupel[2]};
+		}
+		data[i] = { id:i, times:timeList };
+	}
+	//data = [data[651]];
+	planUtils.exportJSON(outputFile, 'data', data);
+}
+
 
 function parseDateWord(dateWord) {
 	if (dateWord == 0x07ff)
@@ -101,7 +180,7 @@ function decodePlanBZsublist(list) {
 	return listOfTrains;
 }
 
-exports.decodePlanBZsublist = decodePlanBZsublist;
+exports.decodePlan = decodePlanBZ;
 
 //
 // helper functions
@@ -122,5 +201,4 @@ String.prototype.lpad = function(padString, length) {
 		str = padString + str;
 	return str;
 }
-
 
