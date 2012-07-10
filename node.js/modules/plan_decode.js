@@ -3,6 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var planATR = require('./planatr.js');
+var planATXD = require('./planatxd.js');
 var planB = require('./planb.js');
 var planBETR = require('./planbetr.js');
 var planBI = require('./planbi.js');
@@ -73,6 +74,7 @@ function decodeFile(file, outputFolder) {
 	
 	switch (file.filetype) {
 		case 'planatr':  planATR.decodePlan(  file.fullname, outputFile); break;
+		case 'planatxd': planATXD.decodePlan( file.fullname, outputFile); break;
 		case 'planb':    planB.decodePlan(    file.fullname, outputFile); break;
 		case 'planbetr': planBETR.decodePlan( file.fullname, outputFile); break;
 		case 'planbi':   planBI.decodePlan(   file.fullname, outputFile); break;

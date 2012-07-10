@@ -36,26 +36,41 @@ function decodePlanZUG(filename, outputFile) {
 	}
 
 	for (var i = 0; i < header.listLength1; i++) {
-		// guess that blockSizes affects size of first integer might be wrong
+		// days of operation for this train
+		// offset in W, list 1
 		if (header.blockSize == 12)
 			data1[i][1] = f.readInteger(4);
 		else
 			data1[i][1] = f.readInteger(2);
+		
+		// UNKNOWN
 		data1[i][2] = f.readInteger(2);
+		// UNKNOWN
 		data1[i][3] = f.readInteger(2);
+		
 		// train number OR offset in ATR, list 1
 		// interpretation offset iff data1[i][6]==0
-		// for S-Bahn-trains something strange happens to this number
+		// TODO: for S-Bahn-trains something strange 
+		// happens to this number
 		data1[i][4] = f.readInteger(2);
+		
 		// UNKNOWN
 		data1[i][5] = f.readInteger(1);
+		
 		// train type OR indicator for data1[i][4]
 		data1[i][6] = f.readInteger(1);
+		
+		// UNKNOWN
 		data1[i][7] = f.readInteger(2);
+		// UNKNOWN
 		data1[i][8] = f.readInteger(2);
+		
 		// route of this train (references a LAUF id)
 		data1[i][9] = f.readInteger(4);
+		
+		// UNKNOWN
 		data1[i][10] = f.readInteger(2);
+		// UNKNOWN
 		data1[i][11] = f.readInteger(2);
 	}
 
