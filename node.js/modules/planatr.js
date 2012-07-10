@@ -3,8 +3,6 @@ var planUtils = require('./plan_utils.js');
 function decodePlanATR(filename, outputFile) {
 	var f = new planUtils.PlanFile(filename);
 	
-	
-	
 	// Header einlesen
 	
 	var header = {unknown:[]};
@@ -20,7 +18,7 @@ function decodePlanATR(filename, outputFile) {
 	
 	header.listLength1 = f.readInteger(4);
 	header.listLength2 = f.readInteger(4);
-	header.listLength2 = f.readInteger(4);
+	header.listLength3 = f.readInteger(4);
 	
 	var headerThingySize;
 	var list2BlockSize;
@@ -44,13 +42,32 @@ function decodePlanATR(filename, outputFile) {
 
 	header.description = f.readString(header.size - f.pos);
 
+
 	// Hier ist noch irgendwas broken!
 	var
 		list1 = [],
 		list2 = [],
 		list3 = [];
 	
-	for (var i = 0; i < header.listLength1; i++) list1[i] = [f.readInteger(2), f.readBinDump(1), f.readBinDump(1), f.readBinDump(2)];
+
+	// List 1 contains information about train numbers and types
+	// in case that they change between start and final destination
+	for (var i = 0; i < header.listLength1; i++) {
+		list1[i] = [];
+		// train number
+		list1[i].push(f.readInteger(2));
+		// UNKNOWN, probably some flag
+		list1[i].push(f.readInteger(1));
+		// train type (RE, IC, ICE, &c.), encoding unknown
+		list1[i].push(f.readInteger(1));
+
+		// first stop on route for which this information (number, type) is valid
+		// number 0 corresponds to the first entry of the LAUF route
+		list1[i].push(f.readInteger(1));
+		// last stop on route for which this information (number, type) is valid
+		list1[i].push(f.readInteger(1));
+	}
+
 	/*
 	if (list2BlockSize == 8) {
 		for (var i = 0; i < header.listLength2; i++) list2[i] = [f.readStringp(2), f.readHexDump(6)];
