@@ -1611,7 +1611,7 @@ function exportJSON(outputFile, listName, data) {
 				return ''+obj;
 			break;
 			case '[object String]':
-				return '"'+obj+'"';
+				return '"' + obj.replace(/\"/g, '\\"') + '"';
 			break;
 			default:
 				console.log('What is "'+typ+'"?');
