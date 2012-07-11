@@ -25,6 +25,7 @@ var planModules = {
 	planlauf: require('./planlauf.js'),
 	planline: require('./planline.js'),
 	planmeta: require('./planmeta.js'),
+	planmw  : require('./planmw.js'),
 	planng  : require('./planng.js'),
 	planrich: require('./planrich.js'),
 	planspr : require('./planspr.js'),
