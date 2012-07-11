@@ -29,9 +29,9 @@ function decodePlanGAT(filename, outputFile) {
 
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
-		data1[i][0] = f.readString(4);
+		data1[i][0] = f.readString(4).replace(/\x00/g, '');
 		data1[i][1] = f.readInteger(2);
-		data1[i][2] = f.readString(8);
+		data1[i][2] = f.readString(8).replace(/\x00/g, '');
 		for (var j = 0; j < 10; ++j) {
 			data1[i][3 + j] = f.readInteger(2);
 		}
@@ -53,6 +53,18 @@ function decodePlanGAT(filename, outputFile) {
 	planUtils.exportTSV(outputFile, '1', data1);
 	planUtils.exportTSV(outputFile, '2', data2);
 	planUtils.exportTSV(outputFile, '3', data3);
+	
+	var data = [];
+	for (var i = 0; i < data1.length; ++i) {
+		data.push({
+			id: i,
+			nameShort: data1[i][0],
+			nameLong: data1[i][2]
+			// TODO: unknown values omitted
+		});
+	}
+	
+	planUtils.exportJSON(outputFile, 'data1', data);
 }
 
 
