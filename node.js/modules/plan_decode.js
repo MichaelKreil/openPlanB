@@ -21,6 +21,7 @@ var planModules = {
 	planitxt: require('./planitxt.js'),
 	plankant: require('./plankant.js'),
 	plankgeo: require('./plankgeo.js'),
+	plankm  : require('./plankm.js'),
 	planlauf: require('./planlauf.js'),
 	planline: require('./planline.js'),
 	planmeta: require('./planmeta.js'),
