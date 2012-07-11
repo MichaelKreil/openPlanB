@@ -11,6 +11,7 @@ var planBZ = require('./planbz.js');
 var planCON = require('./plancon.js');
 var planGAT = require('./plangat.js');
 var planGLS = require('./plangls.js');
+var planGRZ = require('./plangrz.js');
 var planITXT = require('./planitxt.js');
 var planKANT = require('./plankant.js');
 var planKGEO = require('./plankgeo.js');
@@ -82,6 +83,7 @@ function decodeFile(file, outputFolder) {
 		case 'plancon':  planCON.decodePlan(  file.fullname, outputFile); break;
 		case 'plangat':  planGAT.decodePlan(  file.fullname, outputFile); break;
 		case 'plangls':  planGLS.decodePlan(  file.fullname, outputFile); break;
+		case 'plangrz':  planGRZ.decodePlan(  file.fullname, outputFile); break;
 		case 'planitxt': planITXT.decodePlan( file.fullname, outputFile); break;
 		case 'plankant': planKANT.decodePlan( file.fullname, outputFile); break;
 		case 'plankgeo': planKGEO.decodePlan( file.fullname, outputFile); break;
