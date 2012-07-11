@@ -32,7 +32,7 @@ function decodePlanGRZ(filename, outputFile) {
 	// Read the rest of the file in to list 2
 	
 	var n = f.length - f.pos
-	list1.push([header.listLength1, n])
+	list1.push(n)
 	var id = -1;
 	
 	var list2 = [];
