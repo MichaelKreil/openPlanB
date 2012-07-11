@@ -15,7 +15,9 @@ function decodePlanLINE(filename, outputFile) {
 	header.creationDate = f.readTimestamp();
 	
 	header.unknown.push(f.readInteger(2));
-	header.unknown.push(f.readHexDump(4));
+	
+	header.validityBegin = f.readInteger(2);
+	header.validityEnd = f.readInteger(2);
 	
 	header.description = f.readString(header.size - f.pos);
 	
@@ -31,16 +33,34 @@ function decodePlanLINE(filename, outputFile) {
 	
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
+		
+		// id by which this line is referenced in ZUG
 		data1[i][0] = f.readInteger(2);
+		
+		// UNKNOWN
 		data1[i][1] = f.readInteger(2);
-		data1[i][2] = f.readString(nameLength).replace(/\x00/, '');
+		
+		// name of line
+		data1[i][2] = f.readString(nameLength).replace(/\x00/g, '');
 	}
-	
 	
 	header.bytesLeft = f.check(outputFile);
 	
+	// export
+	
 	planUtils.exportHeader(outputFile, header);
 	planUtils.exportTSV(outputFile, '1', data1);
+	
+	var data = [];
+	for (var i = 0; i < data1.length; ++i) {
+		data.push({
+			id: data1[i][0],
+			lineString: data1[i][2],
+			unknown: data1[i][1]
+		});
+	}
+	
+	planUtils.exportJSON(outputFile, 'data', data);
 }
 
 exports.decodePlan = decodePlanLINE;
