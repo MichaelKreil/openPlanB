@@ -52,11 +52,12 @@ function scheduleByTrain() {
 	for (var f in folders) if (folders.hasOwnProperty(f)) {
 		var folder = folders[f];
 		var schedule = [];
-		if ((folder.files['planb_data.json']) && (folder.files['planbz_data.json']) && (folder.files['planlauf_data.json'])  && (folder.files['planzug_data.json'])) {
+		if ((folder.files['planb_data.json']) && (folder.files['planbz_data.json']) && (folder.files['planlauf_data.json'])  && (folder.files['planzug_data.json']) && (folder.files['plangat_data1.json'])) {
 			var trains = JSON.parse(fs.readFileSync(folder.files['planzug_data.json'], 'utf8'));
 			var stations = hashify(JSON.parse(fs.readFileSync(folder.files['planb_data.json'], 'utf8')));
 			var stationSchedules = hashify(JSON.parse(fs.readFileSync(folder.files['planbz_data.json'], 'utf8')));
 			var trainRoutes = hashify(JSON.parse(fs.readFileSync(folder.files['planlauf_data.json'], 'utf8')));
+			var trainTypes = hashify(JSON.parse(fs.readFileSync(folder.files['plangat_data1.json'], 'utf8')));
 			
 			for (var t = 0; t < trains.length; ++t) {
 				var train = trains[t];
@@ -90,7 +91,15 @@ function scheduleByTrain() {
 					}
 				}
 				
-				schedule.push([t, stationBegin.name, prettyTime(timeDep), stationEnd.name, prettyTime(timeArr)].join('\t'));
+				var trainName = '';
+				if (train.trainType == -1) {
+					// TODO: look up in ATR
+				} else {
+					trainName = trainTypes[train.trainType].nameShort + ' ' + train.trainNumber;
+				}
+				
+				
+				schedule.push([t, trainName, stationBegin.name, prettyTime(timeDep), stationEnd.name, prettyTime(timeArr)].join('\t'));
 			}
 			fs.writeFileSync(folder.folder + '/scheduleByTrain.tsv', schedule.join('\n'), 'binary');
 		}
@@ -111,14 +120,9 @@ function prettyTime(mins) {
 	
 	var mm = mins % 60;
 	var hh = (mins - mm) / 60;
-	return (''+hh).lpad('0',2) + ":" + (''+mm).lpad('0',2);
+	return _clamp('00' + hh, 2) + ":" + _clamp('00' + mm, 2);
 }
 
-String.prototype.lpad = function(padString, length) {
-	var str = this;
-	while (str.length < length)
-		str = padString + str;
-	return str;
+function _clamp(text, l) {
+	return text.substr(text.length-l);
 }
-
-
