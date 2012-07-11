@@ -2,28 +2,30 @@
 
 var fs = require('fs');
 var path = require('path');
-var planATR = require('./planatr.js');
-var planATX = require('./planatx.js');
-var planB = require('./planb.js');
+
+var planATR  = require('./planatr.js');
+var planATX  = require('./planatx.js');
+var planB    = require('./planb.js');
 var planBETR = require('./planbetr.js');
-var planBI = require('./planbi.js');
-var planBZ = require('./planbz.js');
-var planCON = require('./plancon.js');
-var planGAT = require('./plangat.js');
-var planGLS = require('./plangls.js');
-var planGRZ = require('./plangrz.js');
+var planBI   = require('./planbi.js');
+var planBZ   = require('./planbz.js');
+var planCON  = require('./plancon.js');
+var planGAT  = require('./plangat.js');
+var planGLS  = require('./plangls.js');
+var planGRZ  = require('./plangrz.js');
 var planITXT = require('./planitxt.js');
 var planKANT = require('./plankant.js');
 var planKGEO = require('./plankgeo.js');
 var planLAUF = require('./planlauf.js');
 var planLINE = require('./planline.js');
 var planMETA = require('./planmeta.js');
-var planNG = require('./planng.js');
-var planU = require('./planu.js');
-var planUK = require('./planuk.js');
-var planVW = require('./planvw.js');
-var planW = require('./planw.js');
-var planZUG = require('./planzug.js');
+var planNG   = require('./planng.js');
+var planSPR  = require('./planspr.js');
+var planU    = require('./planu.js');
+var planUK   = require('./planuk.js');
+var planVW   = require('./planvw.js');
+var planW    = require('./planw.js');
+var planZUG  = require('./planzug.js');
 var planModules = {};
 
 function getAllPlanFiles(config) {
@@ -94,6 +96,7 @@ function decodeFile(file, outputFolder) {
 		case 'planlauf': planLAUF.decodePlan( file.fullname, outputFile); break;
 		case 'planline': planLINE.decodePlan( file.fullname, outputFile); break;
 		case 'planmeta': planMETA.decodePlan( file.fullname, outputFile); break;
+		case 'planspr':  planSPR.decodePlan(  file.fullname, outputFile); break;
 		case 'planng':   planNG.decodePlan(   file.fullname, outputFile); break;
 		case 'planu':    planU.decodePlan(    file.fullname, outputFile); break;
 		case 'planuk':   planUK.decodePlan(   file.fullname, outputFile); break;
