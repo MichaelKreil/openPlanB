@@ -2,7 +2,7 @@ var planUtils = require('./plan_utils.js');
 
 // TODO: make this generic to parse
 //   ATX files in other languages (ATXE, ATXF &c.)
-function decodePlanATXD(filename, outputFile) {
+function decodePlanATX(filename, outputFile) {
 	var f = new planUtils.PlanFile(filename);
 	
 	// Header einlesen
@@ -124,4 +124,4 @@ function decodePlanATXD(filename, outputFile) {
 	planUtils.exportTSV(outputFile, '3', list3);
 }
 
-exports.decodePlan = decodePlanATXD;
+exports.decodePlan = decodePlanATX;
