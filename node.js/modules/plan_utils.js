@@ -4,46 +4,6 @@ var fs = require('fs');
 var path = require('path');
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function PlanFile(filename) {
 	var me = this;
 	me.buffer = fs.readFileSync(filename);
