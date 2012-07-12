@@ -125,6 +125,19 @@ function decodePlanATR(filename, outputFile) {
 	planUtils.exportTSV(outputFile, '3', list3);
 	planUtils.exportTSV(outputFile, '4', list4);
 	planUtils.exportTSV(outputFile, '5', list5);
+	
+	var json1 = [];
+	for (var i = 0; i < list1.length; i++) {
+		json1.push({
+			id: i,
+			trainNumber: list1[i][0],
+			trainType: list1[i][2] >> 1,
+			firstStop: list1[i][3],
+			lastStop: list1[i][4],
+			unknown: list1[i][1]
+		});
+	}
+	planUtils.exportJSON(outputFile, 'data1', json1);
 }
 
 exports.decodePlan = decodePlanATR;

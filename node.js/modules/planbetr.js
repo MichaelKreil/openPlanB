@@ -60,6 +60,17 @@ function decodePlanBETR(filename, outputFile) {
 	planUtils.exportTSV(outputFile, '2', data2);
 	planUtils.exportTSV(outputFile, '3', data3);
 	planUtils.exportTSV(outputFile, '4', data4);
+	
+	var json1 = [];
+	for (var i = 0; i < data1.length; i++) {
+		json1.push({
+			id: i,
+			nameType: data1[i][0],
+			nameShort: data1[i][1],
+			nameLong: data1[i][2]
+		});
+	}
+	planUtils.exportJSON(outputFile, 'data1', json1);
 }
 
 exports.decodePlan = decodePlanBETR;
