@@ -91,13 +91,29 @@ function decodePlanZUG(filename, outputFile) {
 		data = [];
 	
 	for (var i = 0; i < data1.length; i++) {
+		var trainNumberInterpretation = 0;
+		var trainType = data1[i][5] >> 9;
+		var trainNumber = data1[i][4];
+		
+		if (data1[i][5] & 1) {
+			trainNumber += 0x10000;
+		}
+		
+		if (data1[i][5] == 0) {
+			trainNumberInterpretation = 1;
+		// TODO: is this constant writen in some planfile?
+		} else if (trainNumber >= 100000) {
+			trainNumber -= 0x10000;
+			trainNumberInterpretation = 2;
+		}
+		
 		data.push({
 			id: i,
 			laufId: data1[i][9],
 			wId: data1[i][1],
-			// TODO: the following is wrong for S-Bahn, these also have this bit??
-			trainNumber: data1[i][4] + ((data1[i][5] & 1) ? 0x10000 : 0),
-			trainType: (data1[i][5] == 0) ? (-1) : (data1[i][5] >> 9),
+			trainNumber: trainNumber,
+			trainType: trainType,
+			trainNumberInterpretation: trainNumberInterpretation,
 			unknown1: data1[i][0],
 			unknown3: data1[i][2],
 			unknown4: data1[i][3],

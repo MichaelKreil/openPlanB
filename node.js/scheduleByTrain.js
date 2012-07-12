@@ -52,12 +52,23 @@ function scheduleByTrain() {
 	for (var f in folders) if (folders.hasOwnProperty(f)) {
 		var folder = folders[f];
 		var schedule = [];
-		if ((folder.files['planb_data.json']) && (folder.files['planbz_data.json']) && (folder.files['planlauf_data.json'])  && (folder.files['planzug_data.json']) && (folder.files['plangat_data1.json'])) {
+		if (
+			(folder.files['planb_data.json']) &&
+			(folder.files['planbz_data.json']) &&
+			(folder.files['planlauf_data.json']) &&
+			(folder.files['planzug_data.json']) &&
+			(folder.files['plangat_data1.json']) &&
+			(folder.files['planline_data.json']) &&
+			(folder.files['planatr_data1.json'])
+		)
+		{
 			var trains = JSON.parse(fs.readFileSync(folder.files['planzug_data.json'], 'utf8'));
 			var stations = hashify(JSON.parse(fs.readFileSync(folder.files['planb_data.json'], 'utf8')));
 			var stationSchedules = hashify(JSON.parse(fs.readFileSync(folder.files['planbz_data.json'], 'utf8')));
 			var trainRoutes = hashify(JSON.parse(fs.readFileSync(folder.files['planlauf_data.json'], 'utf8')));
 			var trainTypes = hashify(JSON.parse(fs.readFileSync(folder.files['plangat_data1.json'], 'utf8')));
+			var specialLines = hashify(JSON.parse(fs.readFileSync(folder.files['planline_data.json'], 'utf8')));
+			var trainAttributesTrainNumbers = hashify(JSON.parse(fs.readFileSync(folder.files['planatr_data1.json'], 'utf8')));
 			
 			for (var t = 0; t < trains.length; ++t) {
 				var train = trains[t];
@@ -91,15 +102,22 @@ function scheduleByTrain() {
 					}
 				}
 				
-				var trainName = '';
-				if (train.trainType == -1) {
-					// TODO: look up in ATR
+				var trainType = '';
+				var trainNumber = '';
+				if (train.trainNumberInterpretation == 1) {
+					trainType = trainAttributesTrainNumbers[train.trainNumber].trainType;
+					trainNumber = trainAttributesTrainNumbers[train.trainNumber].trainNumber;
+					trainNumber += '(->' + stations[ route.stops[ trainAttributesTrainNumbers[train.trainNumber].lastStop ] ].name + ')';
+				} else if (train.trainNumberInterpretation == 2) {
+					trainType = train.trainType;
+					trainNumber = specialLines[train.trainNumber].lineString;
 				} else {
-					trainName = trainTypes[train.trainType].nameShort + ' ' + train.trainNumber;
+					trainType = train.trainType;
+					trainNumber = train.trainNumber;
 				}
+				// TODO: in trainType is 'DPN', it should be looked up in BETR list 1; but where?
 				
-				
-				schedule.push([t, trainName, stationBegin.name, prettyTime(timeDep), stationEnd.name, prettyTime(timeArr)].join('\t'));
+				schedule.push([t, trainTypes[trainType].nameLong.trim() + ' ' + trainNumber, stationBegin.name, prettyTime(timeDep), stationEnd.name, prettyTime(timeArr)].join('\t'));
 			}
 			fs.writeFileSync(folder.folder + '/scheduleByTrain.tsv', schedule.join('\n'), 'binary');
 		}
