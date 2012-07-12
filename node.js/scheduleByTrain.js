@@ -59,7 +59,10 @@ function scheduleByTrain() {
 			(folder.files['planzug_data.json']) &&
 			(folder.files['plangat_data1.json']) &&
 			(folder.files['planline_data.json']) &&
-			(folder.files['planatr_data1.json'])
+			(folder.files['planatr_data1.json']) &&
+			(folder.files['planbetr_data1.json']) &&
+			(folder.files['planbetr_data2.json']) &&
+			(folder.files['planbetr_data3.json'])
 		)
 		{
 			var trains = JSON.parse(fs.readFileSync(folder.files['planzug_data.json'], 'utf8'));
@@ -69,6 +72,9 @@ function scheduleByTrain() {
 			var trainTypes = hashify(JSON.parse(fs.readFileSync(folder.files['plangat_data1.json'], 'utf8')));
 			var specialLines = hashify(JSON.parse(fs.readFileSync(folder.files['planline_data.json'], 'utf8')));
 			var trainAttributesTrainNumbers = hashify(JSON.parse(fs.readFileSync(folder.files['planatr_data1.json'], 'utf8')));
+			var trainOperatorsList1 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_data1.json'], 'utf8')));
+			var trainOperatorsList2 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_data2.json'], 'utf8')));
+			var trainOperatorsList3 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_data3.json'], 'utf8')));
 			
 			for (var t = 0; t < trains.length; ++t) {
 				var train = trains[t];
@@ -80,11 +86,11 @@ function scheduleByTrain() {
 				var timeArr = -1;
 				
 				if (!stationSchedules[stationBegin.id]) {
-					console.log('WARNING: empty start station', stationBegin.name);
+					console.warn('WARNING: empty start station', stationBegin.name);
 					continue;
 				}
 				if (!stationSchedules[stationEnd.id]) {
-					console.log('WARNING: empty end station', stationEnd.name);
+					console.warn('WARNING: empty end station', stationEnd.name);
 					continue;
 				}
 				
@@ -115,9 +121,20 @@ function scheduleByTrain() {
 					trainType = train.trainType;
 					trainNumber = train.trainNumber;
 				}
-				// TODO: in trainType is 'DPN', it should be looked up in BETR list 1; but where?
 				
-				schedule.push([t, trainTypes[trainType].nameLong.trim() + ' ' + trainNumber, stationBegin.name, prettyTime(timeDep), stationEnd.name, prettyTime(timeArr)].join('\t'));
+				var trainTypeName = trainTypes[trainType].nameLong.trim();
+				// TODO: need to decide when to look for operator name
+				if (trainTypeName == 'DPN') {
+					var operator = trainOperatorsList3[ train.id ];
+					if (operator.unknown == 0) {
+						var operatorLink = trainOperatorsList2[ operator.betr2Id ];
+						if (operatorLink && operatorLink.betr1Id != 0) {
+							trainTypeName = trainOperatorsList1[ operatorLink.betr1Id ].nameShort.trim();
+						}
+					}
+				}
+
+				schedule.push([t, trainTypeName + ' ' + trainNumber, stationBegin.name, prettyTime(timeDep), stationEnd.name, prettyTime(timeArr)].join('\t'));
 			}
 			fs.writeFileSync(folder.folder + '/scheduleByTrain.tsv', schedule.join('\n'), 'binary');
 		}

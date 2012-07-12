@@ -42,7 +42,8 @@ function decodePlanBETR(filename, outputFile) {
 	var data3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
 		data3[i] = [];
-		data3[i][0] = f.readInteger(2);
+		data3[i][0] = f.readInteger(1);
+		data3[i][1] = f.readInteger(1);
 	}
 	
 	var data4 = [];
@@ -71,6 +72,26 @@ function decodePlanBETR(filename, outputFile) {
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data1', json1);
+
+	var json2 = [];
+	for (var i = 0; i < data2.length; i++) {
+		json2.push({
+			id: i,
+			betr1Id: data2[i][1],
+			unknown: data2[i][0]
+		});
+	}
+	planUtils.exportJSON(outputFile, 'data2', json2);
+
+	var json3 = [];
+	for (var i = 0; i < data3.length; i++) {
+		json3.push({
+			id: i,
+			betr2Id: data3[i][0],
+			unknown: data3[i][1]
+		});
+	}
+	planUtils.exportJSON(outputFile, 'data3', json3);
 }
 
 exports.decodePlan = decodePlanBETR;

@@ -63,25 +63,20 @@ function decodePlanZUG(filename, outputFile) {
 		//data1[i][5] = f.readBinDump(2)
 		//data1[i][6] = f.readBinDump(2)
 		data1[i][5] = f.readInteger(2);
+
+		// attributes of this train (offset to ATR, list 2)
 		data1[i][6] = f.readInteger(2);
 		
 		// UNKNOWN
-		data1[i][7] = -1;
-		// train type OR indicator for data1[i][4]
-		//data1[i][6] = f.readInteger(1);
-		
-		// UNKNOWN
-		//data1[i][7] = f.readInteger(2);
-		// UNKNOWN
-		data1[i][8] = f.readInteger(2);
+		data1[i][7] = f.readInteger(2);
 		
 		// route of this train (references a LAUF id)
-		data1[i][9] = f.readInteger(4);
+		data1[i][8] = f.readInteger(4);
 		
 		// UNKNOWN
-		data1[i][10] = f.readInteger(2);
+		data1[i][9] = f.readInteger(2);
 		// UNKNOWN
-		data1[i][11] = f.readInteger(2);
+		data1[i][10] = f.readInteger(2);
 	}
 
 	header.bytesLeft = f.check(outputFile);
@@ -109,20 +104,18 @@ function decodePlanZUG(filename, outputFile) {
 		
 		data.push({
 			id: i,
-			laufId: data1[i][9],
+			laufId: data1[i][8],
 			wId: data1[i][1],
 			trainNumber: trainNumber,
 			trainType: trainType,
 			trainNumberInterpretation: trainNumberInterpretation,
+			atr2Id: data1[i][6],
 			unknown1: data1[i][0],
-			unknown3: data1[i][2],
-			unknown4: data1[i][3],
-			unknown5: data1[i][4],
-			unknown7: data1[i][6],
-			unknown8: data1[i][7],
-			unknown9: data1[i][8],
-			unknown10: data1[i][10],
-			unknown11: data1[i][11]
+			unknown2: data1[i][2],
+			unknown3: data1[i][3],
+			unknown4: data1[i][7],
+			unknown5: data1[i][9],
+			unknown6: data1[i][10]
 		});
 	}
 	
