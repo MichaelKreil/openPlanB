@@ -54,18 +54,22 @@ function decodePlanW(filename, outputFile) {
 	}
 	planUtils.exportTSV(outputFile, '2', list2);
 	
+	header.bytesLeft = f.check(outputFile);
+	planUtils.exportHeader(outputFile, header);
+
 	var data = [];
-	//var n = 
-	for (var i = 0; i < header.listLength2; i++) {
-		//data[i] = f.readBinDump(header.blockSize2);
+	for (var i = 0; i < header.listLength1; i++) {
+		var daysBitset = 'all';
+		if (list1[i]) {
+			daysBitset = list2[ list1[i] - 1 ];
+			daysBitset = daysBitset.substring(2, daysBitset.length - 2);
+		}
+		data.push({
+			id: i,
+			days: daysBitset
+		});
 	}
 	planUtils.exportJSON(outputFile, 'data', data);
-	
-	
-
-	header.bytesLeft = f.check(outputFile);
-	
-	planUtils.exportHeader(outputFile, header);
 }
 
 exports.decodePlan = decodePlanW;
