@@ -13,6 +13,7 @@ function PlanFile(filename) {
 	me.readInteger = function(n) {
 		switch (n) {
 			case  1: return _readByte();
+			case -1: return _readByte(true);
 			case  2: return _readWord();
 			case -2: return _readWord(true);
 			case  3: return _readWord() + _readByte()*0x10000;
@@ -74,10 +75,14 @@ function PlanFile(filename) {
 		}
 	}
 	
-	function _readByte() {
+	function _readByte(signed) {
 		var p = me.pos;
 		me.pos += 1;
-		return me.buffer.readUInt8(p);
+		if (signed) {
+			return me.buffer.readInt8(p);
+		} else {
+			return me.buffer.readUInt8(p);
+		}
 	}
 	
 	function _clamp(text, l) {
