@@ -9,7 +9,7 @@ exports.decodePlan = function(filename, outputFile) {
 	
 	header.version = f.readInteger(2) + '.' + f.readInteger(2);
 	header.creationDate = f.readTimestamp();
-	header.listLength1 = f.readInteger(4);
+	header.unknown.push(f.readInteger(4));
 	
 	var list1 = [];
 	
