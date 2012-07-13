@@ -95,14 +95,14 @@ function scheduleByTrain() {
 				}
 				
 				for (var j in stationSchedules[stationBegin.id].times) {
-					if (stationSchedules[stationBegin.id].times[j].trainId == t) {
+					if (stationSchedules[stationBegin.id].times[j].trainId == t && stationSchedules[stationBegin.id].times[j].arr == -1) {
 						timeDep = stationSchedules[stationBegin.id].times[j].dep;
 						break;
 					}
 				}
 				
 				for (var j in stationSchedules[stationEnd.id].times) {
-					if (stationSchedules[stationEnd.id].times[j].trainId == t) {
+					if (stationSchedules[stationEnd.id].times[j].trainId == t && stationSchedules[stationEnd.id].times[j].dep == -1) {
 						timeArr = stationSchedules[stationEnd.id].times[j].arr;
 						break;
 					}
