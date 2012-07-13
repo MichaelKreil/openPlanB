@@ -32,6 +32,7 @@ var planModules = {
 	planrich: require('./planrich.js'),
 	plansort: require('./plansort.js'),
 	planspr : require('./planspr.js'),
+	plansz  : require('./plansz.js'),
 	planu   : require('./planu.js'),
 	planuk  : require('./planuk.js'),
 	planvw  : require('./planvw.js'),
