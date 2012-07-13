@@ -27,29 +27,18 @@ exports.decodePlan = function(filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = [
-			f.readInteger(3),
+			f.readInteger(3), // start position ... just ignore
 			f.readInteger(1)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
 	
+	// Read the rest of the file
 	
-	
-	// Read the rest of the file in to list 2
-	
-	var n = f.length - f.pos
-	list1.push([n])
-	var id = -1;
-	
-	var list2 = [];
-	for (var i = 0; i < n; i++) {
-		while (i >= list1[id+1][0]) {
-			id++;
-			list2[id] = [];
-		}
-		list2[id].push(f.readInteger(1));
+	for (var i = 0; i < header.listLength1; i++) {
+		list1[i].push(f.readNullString());  // some id
+		list1[i].push(f.readNullString());  // name of direction
 	}
-	planUtils.exportTSV(outputFile, '2', list2);
+	planUtils.exportTSV(outputFile, '1', list1);
 	
 	
 	
