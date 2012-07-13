@@ -11,18 +11,16 @@ exports.decodePlan = function(filename, outputFile) {
 	header.creationDate = f.readTimestamp();
 	header.unknown.push(f.readInteger(4));
 	
+	// This list maps every ASCII char (1-255) to a sorting index
+	// This seems to 
 	var list1 = [];
-	
 	for (var i = 1; i < 256; i++) {
 		list1.push([
 			// plain char - ASCII Number 
 			i,
 			
-			// encoded char - ASCII Number
-			f.readInteger(1),
-			
-			// Char-Type (0, 1, 2, 3, 4, 117)
-			f.readInteger(1)
+			// sorting index
+			f.readInteger(2)
 		]);
 	}
 	planUtils.exportTSV(outputFile, '1', list1);
