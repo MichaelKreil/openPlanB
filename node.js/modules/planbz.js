@@ -66,7 +66,7 @@ function decodePlanBZ(filename, outputFile) {
 	
 	var data = [];
 	
-	for (var i = 0; i < list1.length - 1; ++i) {
+	for (var i = 0; i < list1.length; ++i) {
 		var timeList = list2[i];
 		for (var j = 0; j < timeList.length; j++) {
 			var tupel = timeList[j];
