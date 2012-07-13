@@ -18,6 +18,7 @@ var planModules = {
 	plangat : require('./plangat.js'),
 	plangls : require('./plangls.js'),
 	plangrz : require('./plangrz.js'),
+	planholi: require('./planholi.js'),
 	planitxt: require('./planitxt.js'),
 	plankant: require('./plankant.js'),
 	plankgeo: require('./plankgeo.js'),
