@@ -37,7 +37,8 @@ var planModules = {
 	planuk  : require('./planuk.js'),
 	planvw  : require('./planvw.js'),
 	planw   : require('./planw.js'),
-	planzug : require('./planzug.js')
+	planzug : require('./planzug.js'),
+	planzz  : require('./planzz.js')
 };
 
 function getAllPlanFiles(config) {
