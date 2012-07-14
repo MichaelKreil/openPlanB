@@ -11,7 +11,8 @@ exports.decodePlan = function(filename, outputFile) {
 	header.creationDate = f.readTimestamp();
 	
 	header.listLength1 = f.readInteger(4);
-	header.unknown.push(f.readHexDump(6));
+	header.flag = f.readInteger(2);
+	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readHexDump(4));
 	header.unknown.push(f.readHexDump(4));
@@ -21,16 +22,24 @@ exports.decodePlan = function(filename, outputFile) {
 	
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		list1[i] = [
+		list1.push([
 			f.readInteger(1),
 			f.readInteger(1)
-		];
+		]);
 	}
+	
+	if (header.flag > 0) {
+		for (var i = 0; i < header.listLength1; i++) {
+			list1[i].push(f.readInteger(1));
+			list1[i].push(f.readInteger(1));
+		}
+	}
+	
+	planUtils.exportTSV(outputFile, '1', list1);
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', list1);
 }
 
 
