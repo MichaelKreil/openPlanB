@@ -36,9 +36,14 @@ function decodePlanGLS(filename, outputFile) {
 		
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
-		// Zug-ID
+		// references a train, Z id
 		data1[i][0] = f.readInteger(4);
+		
+		// number of iteration for which this information holds
+		//  (cf. train frequency)
 		data1[i][1] = f.readInteger(2);
+		
+		// TODO: check: probably offset in file
 		data1[i][2] = f.readInteger(4);
 	}
 	
@@ -46,26 +51,31 @@ function decodePlanGLS(filename, outputFile) {
 		data2[i] = [];
 		var n = f.readInteger(integerByteCount);
 		for (var j = 0; j < n; j++) {
-			// referenziert Nummer des Haltepunkt auf Lauf des Zuges
+			// stop on route for which this platform information holds
+			// number 0 corresponds to the first entry of the LAUF route
 			data2[i].push(f.readInteger(1));
-			// Flags?
+			
+			// UNKNOWN
 			data2[i].push(f.readHexDump(1));
-			// Position in Liste 3
+			
+			// position in GLS list 3
 			data2[i].push(f.readInteger(integerByteCount));
 		}
 	}
 	
 	for (var i = 0; i < header.listLength3; i++) {
 		data3[i] = [];
-		// Position in Liste 4
+		// position in GLS list 4
 		data3[i].push(f.readInteger(2));
+		
+		// UNKNOWN
 		data3[i].push(f.readInteger(integerByteCount));
 	}
 	
 	for (var i = 0; i < header.listLength4; i++) {
+		// name of platform
 		data4[i] = f.readString(8);
 	}
-			
 	
 	header.bytesLeft = f.check(outputFile);
 	
@@ -79,7 +89,8 @@ function decodePlanGLS(filename, outputFile) {
 	for (var i = 0; i < data1.length; i++) {
 		data[i] = {
 			id: i,
-			zugId: data1[i][0],
+			trainId: data1[i][0],
+			frequencyId: data1[i][1],
 			platformAtStops: []
 		}
 		for (var j = 0; j < data2[i].length / 3; ++j) {

@@ -35,6 +35,10 @@ exports.decodePlan = function(filename, outputFile) {
 	// Read the rest of the file
 	
 	for (var i = 0; i < header.listLength1; i++) {
+		// TODO: understand this "offset"
+		//   sometimes lowest byte is 0xfe, sometimes it is 0xff
+		if ((list1[i][0] & 0xffff00) == 0xffff00)
+			continue;
 		list1[i].push(f.readNullString());  // some id
 		list1[i].push(f.readNullString());  // name of direction
 	}

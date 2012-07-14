@@ -26,7 +26,11 @@ function decodePlanZUG(filename, outputFile) {
 		
 	for (var i = 0; i < header.listLength1; i++) {
 		data1[i] = [];
-		data1[i][0] = f.readBinDump(2);
+		// operation frequency b
+		// b & 0x7f               number of iterations
+		// (b & 0xff00 ?) >> 7    interval in minutes between each operation
+		// (b & 0x80)             UNKNOWN flag
+		data1[i][0] = f.readInteger(2);
 	}
 	header.blockSize = (f.length - f.pos)/(2*header.listLength1);
 	
@@ -37,7 +41,8 @@ function decodePlanZUG(filename, outputFile) {
 
 	for (var i = 0; i < header.listLength1; i++) {
 		// days of operation for this train
-		// offset in W, list 1
+		// offset in W, list 1, or zero (train operates every day)
+		// TODO: don't know when which interpretation of value holds
 		if (header.blockSize == 12)
 			data1[i][1] = f.readInteger(4);
 		else
@@ -73,9 +78,12 @@ function decodePlanZUG(filename, outputFile) {
 		// route of this train (references a LAUF id)
 		data1[i][8] = f.readInteger(4);
 		
-		// UNKNOWN
+		// a direction (references a RICH id, or ATR list 4, or zero)
+		// TODO: don't know when which interpretation of value holds
 		data1[i][9] = f.readInteger(2);
-		// UNKNOWN
+		
+		// border crossing of this train (offset to ATR, list 5, or zero)
+		// TODO: don't know when which interpretation of value holds
 		data1[i][10] = f.readInteger(2);
 	}
 
@@ -110,12 +118,15 @@ function decodePlanZUG(filename, outputFile) {
 			trainType: trainType,
 			trainNumberInterpretation: trainNumberInterpretation,
 			atr2Id: data1[i][6],
-			unknown1: data1[i][0],
+			atr5Id: data1[i][10],
+			frequency: {
+				iterations: (data1[i][0] & 0x7f),
+				interval: ((data1[i][0] & 0xff00) >> 7)
+			},
 			unknown2: data1[i][2],
 			unknown3: data1[i][3],
 			unknown4: data1[i][7],
-			unknown5: data1[i][9],
-			unknown6: data1[i][10]
+			unknown5: data1[i][9]
 		});
 	}
 	

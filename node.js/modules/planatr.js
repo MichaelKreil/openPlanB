@@ -106,13 +106,33 @@ function decodePlanATR(filename, outputFile) {
 	}
 	
 	for (var i = 0; i < header.listLength4; i++) {
-		// UNKNOWN
-		list4[i] = [f.readHexDump(4)];
+		list4[i] = [];
+		
+		// TODO: sometimes first entry seems to indicate number of 
+		//   following entries which belong to a group
+		//   but this is not always the case
+		
+		// references a direction, RICH id
+		list4[i].push(f.readInteger(2));
+		
+		// first stop on route for which this information is valid
+		// number 0 corresponds to the first entry of the LAUF route
+		list4[i].push(f.readInteger(1));
+		// last stop on route for which this information is valid
+		list4[i].push(f.readInteger(1));
 	}
 	
 	for (var i = 0; i < header.listLength5; i++) {
-		// UNKNOWN
-		list5[i] = [f.readHexDump(4)];
+		list5[i] = [];
+		
+		// references a border station, GRZ id
+		list5[i].push(f.readInteger(2));
+		
+		// stop on route before border crossing
+		// number 0 corresponds to the first entry of the LAUF route
+		list5[i].push(f.readInteger(1));
+		// stop on route after border crossing
+		list5[i].push(f.readInteger(1));
 	}
 	
 	header.bytesLeft = f.check(outputFile);
@@ -138,6 +158,28 @@ function decodePlanATR(filename, outputFile) {
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data1', json1);
+	
+	var json4 = [];
+	for (var i = 0; i < list4.length; i++) {
+		json4.push({
+			id: i,
+			directionId: list4[i][0],
+			firstStop: list4[i][1],
+			lastStop: list4[i][2]
+		});
+	}
+	planUtils.exportJSON(outputFile, 'data4', json4);
+	
+	var json5 = [];
+	for (var i = 0; i < list5.length; i++) {
+		json5.push({
+			id: i,
+			borderId: list5[i][0],
+			stopBefore: list5[i][1],
+			stopAfter: list5[i][2]
+		});
+	}
+	planUtils.exportJSON(outputFile, 'data5', json5);
 }
 
 exports.decodePlan = decodePlanATR;
