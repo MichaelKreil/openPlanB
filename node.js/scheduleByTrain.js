@@ -80,23 +80,36 @@ function scheduleByTrain() {
 				var train = trains[t];
 				var route = trainRoutes[ train.laufId ];
 				var stationBegin = stations[ route.stops[0] ];
+				var stationFirstStop = stations[ route.stops[1] ];
 				var stationEnd = stations[ route.stops[route.stops.length - 1] ];
 				
 				var timeDep = -1;
 				var timeArr = -1;
+				var timeFirst = -1;
 				
 				if (!stationSchedules[stationBegin.id]) {
-					console.warn('WARNING: empty start station', stationBegin.name);
+					console.warn('WARNING: empty start station', stationBegin.name, train);
+					continue;
+				}
+				if (!stationSchedules[stationFirstStop.id]) {
+					console.warn('WARNING: empty second station', stationFirstStop.name, train);
 					continue;
 				}
 				if (!stationSchedules[stationEnd.id]) {
-					console.warn('WARNING: empty end station', stationEnd.name);
+					console.warn('WARNING: empty end station', stationEnd.name, train);
 					continue;
 				}
 				
 				for (var j in stationSchedules[stationBegin.id].times) {
 					if (stationSchedules[stationBegin.id].times[j].trainId == t && stationSchedules[stationBegin.id].times[j].arr == -1) {
 						timeDep = stationSchedules[stationBegin.id].times[j].dep;
+						break;
+					}
+				}
+				
+				for (var j in stationSchedules[stationFirstStop.id].times) {
+					if (stationSchedules[stationFirstStop.id].times[j].trainId == t) {
+						timeFirst = stationSchedules[stationFirstStop.id].times[j].arr;
 						break;
 					}
 				}
@@ -134,7 +147,14 @@ function scheduleByTrain() {
 					}
 				}
 
-				schedule.push([t, trainTypeName + ' ' + trainNumber, stationBegin.name, prettyTime(timeDep), stationEnd.name, prettyTime(timeArr)].join('\t'));
+				output = [t, trainTypeName + ' ' + trainNumber, stationBegin.name, prettyTime(timeDep)];
+				if (stationFirstStop.id != stationEnd.id) {
+					output.push(stationFirstStop.name);
+					output.push(prettyTime(timeFirst));
+				}
+				output.push(stationEnd.name);
+				output.push(prettyTime(timeArr));
+				schedule.push(output.join('\t'));
 			}
 			fs.writeFileSync(folder.folder + '/scheduleByTrain.tsv', schedule.join('\n'), 'binary');
 		}
@@ -152,6 +172,10 @@ function ensureFolderFor(filename) {
 function prettyTime(mins) {
 	if (mins == -1)
 		return -1;
+	
+	// TODO: understand and handle this bit:
+	//   for the moment we just ignore it
+	mins &= ~0x800;
 	
 	var mm = mins % 60;
 	var hh = (mins - mm) / 60;
