@@ -36,22 +36,32 @@ function decodePlanGRZ(filename, outputFile) {
 	var id = -1;
 	
 	var list2 = [];
-	for (var i = 0; i < n; i++) {
-		while (i >= list1[id+1]) {
-			id++;
-			list2[id] = [];
+	for (var i = 0; i < list1.length - 1; i++) {
+		list2[i] = [];
+		
+		list2[i].push(f.readNullString());
+		list2[i].push(f.readNullString());
+		
+		// expected entry size: string length + two zero-bytes at the string ends
+		if ( (list2[i][0].length + list2[i][1].length + 2) != (list1[i+1] - list1[i]) ) {
+			console.warn('WARNING: unexpected string sizes');
 		}
-		list2[id].push(f.readInteger(1));
 	}
-	planUtils.exportTSV(outputFile, '2', list2);
-	
-	
-	
-	// Finished! Just output the header.
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	planUtils.exportHeader(outputFile, header);
+	planUtils.exportTSV(outputFile, '2', list2);
+	
+	var json = [];
+	for (var i = 0; i < list2.length; i++) {
+		json.push({
+			id: i,
+			IBNR: list2[i][0],
+			name: list2[i][1]
+		});
+	}
+	planUtils.exportJSON(outputFile, 'data', json);
 }
 
 exports.decodePlan = decodePlanGRZ;
