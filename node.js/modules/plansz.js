@@ -9,17 +9,19 @@ exports.decodePlan = function(filename, outputFile) {
 	
 	header.version = f.readInteger(2) + '.' + f.readInteger(2);
 	header.creationDate = f.readTimestamp();
-	header.unknown.push(f.readInteger(4));
 	
-	// This list maps every ASCII char (1-255) to a sorting index
-	// This seems to 
+	header.listLength1 = f.readInteger(4);
+	header.unknown.push(f.readInteger(4));
+	header.unknown.push(f.readHexDump(4));
+	
+	header.description = f.readString(header.size - f.pos);
+	
 	var list1 = [];
-	for (var i = 1; i < 256; i++) {
+	for (var i = 0; i < header.listLength1; i++) {
 		list1.push([
-			// plain char - ASCII Number 
-			i,
-			
-			// sorting index
+			f.readInteger(4),
+			f.readInteger(2),
+			f.readInteger(4),
 			f.readInteger(2)
 		]);
 	}
