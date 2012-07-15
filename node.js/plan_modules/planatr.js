@@ -21,15 +21,18 @@ function decodePlanATR(filename, outputFile) {
 	
 	var headerThingySize;
 	var list2BlockSize;
+	var list3BlockSize;
 	switch (header.size) {
 	 	case 128:
 	 	// Hab nicht rausbekommen, warum manchmal dieser Integer 2/4 Bytes lang ist
 	 		headerThingySize = 4;
 	 		list2BlockSize = 8;
+	 		list3BlockSize = 6;
 	 	break;
 	 	default:
 	 		headerThingySize = 2;
 	 		list2BlockSize = 6;
+	 		list3BlockSize = 4;
 	}
 	
 	header.listLength3 = f.readInteger(headerThingySize);
@@ -72,7 +75,7 @@ function decodePlanATR(filename, outputFile) {
 		list1[i].push(f.readInteger(1));
 	}
 
-	// List 2 contains information about train amnenities
+	// List 2 contains information about train amenities
 	//  such as on-board restaurant and facilities for people with a disability
 	for (var i = 0; i < header.listLength2; i++) {
 		list2[i] = [];
@@ -102,7 +105,7 @@ function decodePlanATR(filename, outputFile) {
 	
 	for (var i = 0; i < header.listLength3; i++) {
 		// UNKNOWN
-		list3[i] = [f.readHexDump(6)];
+		list3[i] = [f.readHexDump(list3BlockSize)];
 	}
 	
 	for (var i = 0; i < header.listLength4; i++) {
