@@ -38,6 +38,32 @@ exports.makeGTFS = function (config) {
 
 }
 
+exports.outputGTFSFile = function (list, outputFolder, name) {
+	var colCount = list[0].length;
+	var a = [list[0].join(',')];
+	for (var i = 1; i < list.length; i++) {
+		var line = list[i].join(',');
+		line = line.replace(/[\t\r\n]+/g,'');
+		a.push(line);
+	}
+	a = a.join('\n');
+	
+	var filename = outputFolder+'/'+name+'.txt';
+	ensureFolderFor(filename);
+	fs.writeFileSync(filename, a, 'utf8'); 
+}
+
+exports.formatNumber = function (value, precision) {
+	return value.toFixed(precision);
+}
+
+exports.formatString = function (text) {
+	return '"'+text.replace(/\"/g, '""')+'"';
+}
+
+exports.formatInteger = function (value, precision) {
+	return value.toFixed(0);
+}
 
 function ensureFolderFor(filename) {
 	var dirname = path.dirname(filename);
