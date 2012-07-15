@@ -44,7 +44,6 @@ function decodePlanW(filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = f.readInteger(header.blockSize1);
-		if (list1[i] != i) console.warn('WARNING: unerwartete IDs')
 	}
 	planUtils.exportTSV(outputFile, '1', list1);
 	
