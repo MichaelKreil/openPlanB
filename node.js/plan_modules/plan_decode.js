@@ -33,6 +33,7 @@ var planModules = {
 	plansort: require('./plansort.js'),
 	planspr : require('./planspr.js'),
 	plansz  : require('./plansz.js'),
+	plantrf : null,
 	planu   : require('./planu.js'),
 	planuk  : require('./planuk.js'),
 	planvw  : require('./planvw.js'),
@@ -86,12 +87,14 @@ function decodeFile(file, outputFolder) {
 	var outputFile = path.normalize(outputFolder + file.subfolder);
 	
 	var stats = fs.statSync(file.fullname);
-	console.log(file.fullname + '\t' + stats.size);
 	
 	var decoder = planModules[file.filetype];
 	if (decoder === undefined) {
-		console.log('# unknown;' + file.filetype + ';' + stats.size);
+		console.log('UNKNOWN:\t' + file.fullname + '\t' + stats.size);
+	} else if (decoder === null) {
+		console.log('IGNORE: \t' + file.fullname + '\t' + stats.size);
 	} else {
+		console.log('convert:\t' + file.fullname + '\t' + stats.size);
 		decoder.decodePlan(  file.fullname, outputFile);
 	}
 }
