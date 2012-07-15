@@ -48,8 +48,13 @@ function decodePlanZUG(filename, outputFile) {
 			data1[i][1] = f.readInteger(2);
 		
 		// UNKNOWN
+		// probably a reference to an offset in UK list 1
 		data1[i][2] = f.readInteger(2);
 		// UNKNOWN
+		// TODO: ?
+		// data1[i][3] & 256   -> look up field 9 in ATR list 4, else it is a RICH id
+		// data1[i][3] & 512   -> look up field 9 in ATR list 4, else it is a RICH id
+		// data1[i][3] & 2048   -> look up field 10 in ATR list 5, else there is no border crossing
 		data1[i][3] = f.readInteger(2);
 		
 		//     train number 
@@ -93,29 +98,16 @@ function decodePlanZUG(filename, outputFile) {
 		data = [];
 	
 	for (var i = 0; i < data1.length; i++) {
-		var trainNumberInterpretation = 0;
 		var trainType = data1[i][5] >> 9;
 		var trainNumber = data1[i][4];
-		
-		if (data1[i][5] & 1) {
-			trainNumber += 0x10000;
-		}
-		
-		if (data1[i][5] == 0) {
-			trainNumberInterpretation = 1;
-		// TODO: is this constant writen in some planfile?
-		} else if (trainNumber >= 100000) {
-			trainNumber -= 0x10000;
-			trainNumberInterpretation = 2;
-		}
 		
 		data.push({
 			id: i,
 			laufId: data1[i][8],
 			wId: data1[i][1],
 			trainNumber: trainNumber,
+			trainNumberFlags: (data1[i][5] & 0x1ff),
 			trainType: trainType,
-			trainNumberInterpretation: trainNumberInterpretation,
 			atr2Id: data1[i][6],
 			atr5Id: data1[i][10],
 			frequency: {

@@ -151,10 +151,10 @@ function decodePlanATR(filename, outputFile) {
 		json1.push({
 			id: i,
 			trainNumber: list1[i][0],
+			trainNumberFlags: list1[i][1],
 			trainType: list1[i][2] >> 1,
 			firstStop: list1[i][3],
-			lastStop: list1[i][4],
-			unknown: list1[i][1]
+			lastStop: list1[i][4]
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data1', json1);
