@@ -50,6 +50,9 @@ function hashify(arr) {
 
 function scheduleByTrain() {
 	for (var f in folders) if (folders.hasOwnProperty(f)) {
+		if (f.indexOf('DB') == -1)
+			continue;
+		
 		var folder = folders[f];
 		var schedule = [];
 		if (
@@ -68,6 +71,7 @@ function scheduleByTrain() {
 			(folder.files['plangrz_data.json'])
 		)
 		{
+			var trainsHeader = JSON.parse(fs.readFileSync(folder.files['planzug_header.json'], 'utf8'));
 			var trains = JSON.parse(fs.readFileSync(folder.files['planzug_data.json'], 'utf8'));
 			var stations = hashify(JSON.parse(fs.readFileSync(folder.files['planb_data.json'], 'utf8')));
 			var stationSchedules = hashify(JSON.parse(fs.readFileSync(folder.files['planbz_data.json'], 'utf8')));
@@ -82,9 +86,10 @@ function scheduleByTrain() {
 			var daysValidBitsets = hashify(JSON.parse(fs.readFileSync(folder.files['planw_data.json'], 'utf8')));
 			var borderStations = hashify(JSON.parse(fs.readFileSync(folder.files['plangrz_data.json'], 'utf8')));
 			
+			var validityBegin = new Date(trainsHeader.validityBegin);
+			
 			for (var t = 0; t < trains.length; ++t) {
-			//for (var t = 0; t < 40000; ++t) {
-				if (t % 100 == 0)
+				if (t % 500 == 0)
 					console.log(t);
 				
 				var train = trains[t];
@@ -133,17 +138,30 @@ function scheduleByTrain() {
 				
 				var trainType = '';
 				var trainNumber = '';
-				if (train.trainNumberInterpretation == 1) {
-					trainType = trainAttributesTrainNumbers[train.trainNumber].trainType;
-					// TODO: evaluate (+0x10000)-bitset
-					trainNumber = trainAttributesTrainNumbers[train.trainNumber].trainNumber;
-					trainNumber += '(->' + stations[ route.stops[ trainAttributesTrainNumbers[train.trainNumber].lastStop ] ].name + ')';
-				} else if (train.trainNumberInterpretation == 2) {
-					trainType = train.trainType;
-					trainNumber = specialLines[train.trainNumber].lineString;
+				
+				// take number value and flags,
+				// return proper train number or line name for display
+				var getTrainNumber = function(number, flags) {
+					var tempNumber = number;
+					if (flags & 1) {
+						tempNumber += 0x10000;
+					}
+					
+					// TODO: is this constant writen in some planfile?
+					if (tempNumber >= 100000) {
+						return specialLines[tempNumber - 0x10000].lineString;
+					}
+					return tempNumber;
+				};
+				
+				if (train.trainType == 0 && train.trainNumberFlags == 0) {
+					var attributes = trainAttributesTrainNumbers[train.trainNumber];
+					trainType = attributes.trainType;
+					trainNumber = getTrainNumber(attributes.trainNumber, attributes.trainNumberFlags);
+					trainNumber += '(->' + stations[ route.stops[ attributes.lastStop ] ].name + ')';
 				} else {
 					trainType = train.trainType;
-					trainNumber = train.trainNumber;
+					trainNumber = getTrainNumber(train.trainNumber, train.trainNumberFlags);
 				}
 				
 				var trainTypeName = trainTypes[trainType].nameLong.trim();
@@ -168,6 +186,10 @@ function scheduleByTrain() {
 				output.push(stationEnd.name);
 				output.push(prettyTime(timeArr));
 				
+				if (train.frequency.iterations != 0) {
+					output.push("freq " + train.frequency.iterations + "@" + train.frequency.interval + "m");
+				}
+				
 				/*
 				var validDay = 0;
 				if (train.wId != 0) {
@@ -179,7 +201,7 @@ function scheduleByTrain() {
 					output.push('every day');
 				*/
 				if (train.wId != 0) {
-					output.push( prettyW(daysValidBitsets[ train.wId ].days) );
+					output.push( prettyW(validityBegin, daysValidBitsets[ train.wId ].days) );
 				}
 				
 				
@@ -223,20 +245,18 @@ function findOneValidDay(bitset) {
 		return 0;
 	
 	// TODO make start day flexible
-	var validityStart = new Date(2011,11,11);
+	var validityBegin = new Date(2011,11,11);
 	for (var i = 0; i < bitset.length; ++i) {
 		if (bitset[i] == 'l')
-			return new Date(validityStart.getTime() + i * 86400000);
+			return new Date(validityBegin.getTime() + i * 86400000);
 	}
 	return 0;
 }
 
-function prettyW(bitset) {
+function prettyW(validityBegin, bitset) {
 	if (bitset == 'all')
 		return ['immer'];
 	
-	// TODO make start day flexible
-	var validityStart = new Date(2011,11,11,12,00);
 	var patterns = {
 		'Mo-Fr': '0lllll0',
 		'Mo-Sa': '0llllll',
@@ -247,10 +267,10 @@ function prettyW(bitset) {
 		'none':  '0000000'
 	};
 	
-	var iDate = validityStart;
-	var i = validityStart.getDay();
+	var iDate = validityBegin;
+	var i = validityBegin.getDay();
 	if (i > 0) {
-		iDate = new Date(validityStart.getTime() + ((7-validityStart.getDay()) * 86400000));
+		iDate = new Date(validityBegin.getTime() + ((7-validityBegin.getDay()) * 86400000));
 	}
 	
 	var dateDescription = [];
@@ -269,7 +289,7 @@ function prettyW(bitset) {
 			
 			for (var j = 0; j < 7; ++j) {
 				if (week[j] != pattern[j]) {
-					differences[p].push(new Date(validityStart.getTime() + (i + j) * 86400000));
+					differences[p].push(new Date(validityBegin.getTime() + (i + j) * 86400000));
 				}
 			}
 			if (differences[p].length == 0) {
@@ -295,14 +315,14 @@ function prettyW(bitset) {
 					if (thisPattern[1])
 						dateDescription.push([thisPattern[0], 'not', thisPattern[1].toDateString()]);
 					else
-						dateDescription.push([thisPattern[0], 'from', (new Date(validityStart.getTime() + i * 86400000)).toDateString()]);
+						dateDescription.push([thisPattern[0], 'from', (new Date(validityBegin.getTime() + i * 86400000)).toDateString()]);
 				}
 				lastPattern = thisPattern;
 			}
 		} else {
 			for (var j = 0; j < 7; ++j) {
 				if (pattern[j]) {
-					var d = new Date(validityStart.getTime() + (i + j) * 86400000);
+					var d = new Date(validityBegin.getTime() + (i + j) * 86400000);
 					dateDescription.push([d.toDateString()]);
 				}
 			}
