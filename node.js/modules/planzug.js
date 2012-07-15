@@ -28,8 +28,7 @@ function decodePlanZUG(filename, outputFile) {
 		data1[i] = [];
 		// operation frequency b
 		// b & 0x7f               number of iterations
-		// (b & 0xff00 ?) >> 7    interval in minutes between each operation
-		// (b & 0x80)             UNKNOWN flag
+		// (b & 0xff80) >> 7      interval in minutes between each operation
 		data1[i][0] = f.readInteger(2);
 	}
 	header.blockSize = (f.length - f.pos)/(2*header.listLength1);
@@ -121,7 +120,7 @@ function decodePlanZUG(filename, outputFile) {
 			atr5Id: data1[i][10],
 			frequency: {
 				iterations: (data1[i][0] & 0x7f),
-				interval: ((data1[i][0] & 0xff00) >> 7)
+				interval: ((data1[i][0] & 0xff80) >> 7)
 			},
 			unknown2: data1[i][2],
 			unknown3: data1[i][3],
