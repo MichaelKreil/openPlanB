@@ -247,3 +247,31 @@ exports.PlanFile = PlanFile;
 exports.exportHeader = exportHeader;
 exports.exportTSV = exportTSV;
 exports.exportJSON = exportJSON;
+
+
+
+var BufferedWriter = function (filename) {
+	var BUFFER_SIZE = 0x4000;
+	
+	var me = this;
+	var fd = fs.openSync(filename, 'w');
+	var sBuf = '';
+	
+	function flush() {
+		var buf = new Buffer(sBuf, 'utf8');
+		fs.writeSync(fd, buf, 0, buf.length, null);
+		sBuf = '';
+	}
+	
+	me.write = function (text) {
+		sBuf += text;
+		if (sBuf.length > BUFFER_SIZE) flush();
+	}
+	
+	me.close = function () {
+		flush();
+		fs.closeSync(fd);
+	}
+	
+	return me;
+};
