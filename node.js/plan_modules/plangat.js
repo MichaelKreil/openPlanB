@@ -14,52 +14,54 @@ function decodePlanGAT(filename, outputFile) {
 	header.listLength2 = f.readInteger(2);
 	header.listLength3 = f.readInteger(4);
 	header.unknown.push(f.readInteger(4));
-
-	f.checkBytes('00 00 00 00');
+	
+	header.listSize4 = f.readInteger(4);
 
 	header.unknown.push(f.readInteger(4));
 	header.unknown.push(f.readInteger(2));
 
 	header.description = f.readString(header.size - f.pos);
 
-	var
-		data1 = [],
-		data2 = [],
-		data3 = [];
-
+	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [];
-		data1[i][0] = f.readString(4).replace(/\x00/g, '');
-		data1[i][1] = f.readInteger(2);
-		data1[i][2] = f.readString(8).replace(/\x00/g, '');
+		list1[i] = [];
+		list1[i][0] = f.readString(4).replace(/\x00/g, '');
+		list1[i][1] = f.readInteger(2);
+		list1[i][2] = f.readString(8).replace(/\x00/g, '');
 		for (var j = 0; j < 10; ++j) {
-			data1[i][3 + j] = f.readInteger(2);
+			list1[i][3 + j] = f.readInteger(2);
 		}
 	}
+	planUtils.exportTSV(outputFile, '1', list1);
 
+	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
-		data2[i] = [];
-		data2[i][0] = f.readHexDump(614);
+		list2[i] = [];
+		list2[i][0] = f.readHexDump(614);
 	}
+	planUtils.exportTSV(outputFile, '2', list2);
 
+	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
-		data3[i] = [];
-		data3[i][0] = f.readNullString();
+		list3[i] = [];
+		list3[i][0] = f.readNullString();
 	}
+	planUtils.exportTSV(outputFile, '3', list3);
+	
+	var list4 = [];
+	if (header.listSize4 > 0) list4 = f.readString(header.listSize4).split('\x00');
+	planUtils.exportTSV(outputFile, '4', list4);
 
 	header.bytesLeft = f.check(outputFile);
 
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', data1);
-	planUtils.exportTSV(outputFile, '2', data2);
-	planUtils.exportTSV(outputFile, '3', data3);
 	
 	var data = [];
-	for (var i = 0; i < data1.length; ++i) {
+	for (var i = 0; i < list1.length; ++i) {
 		data.push({
 			id: i,
-			nameShort: data1[i][0],
-			nameLong: data1[i][2]
+			nameShort: list1[i][0],
+			nameLong: list1[i][2]
 			// TODO: unknown values omitted
 		});
 	}
