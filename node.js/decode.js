@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var planDecode = require('./modules/plan_decode.js');
+var planDecode = require('./plan_modules/plan_decode.js');
 
 var config = fs.readFileSync('config.json', 'utf8');
 

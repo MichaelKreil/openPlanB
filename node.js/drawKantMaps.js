@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var planUtils = require('./modules/plan_utils.js');
+var planUtils = require('./plan_modules/plan_utils.js');
 
 var config = fs.readFileSync('config.json', 'utf8');
 
