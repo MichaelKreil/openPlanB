@@ -4,7 +4,7 @@ var fs = require('fs');
 var path = require('path');
 
 
-function PlanFile(filename) {
+exports.PlanFile = function(filename) {
 	var me = this;
 	me.buffer = fs.readFileSync(filename);
 	me.length = me.buffer.length;
@@ -170,7 +170,7 @@ function validityToDate(d) {
 }
 
 
-function exportHeader(outputFile, data) {
+exports.exportHeader = function(outputFile, data) {
 	var filename = outputFile+'_header.json';
 	ensureFolderFor(filename);
 	if (data.validityBegin)
@@ -180,59 +180,91 @@ function exportHeader(outputFile, data) {
 	fs.writeFileSync(filename, JSON.stringify(data, null, '\t'), 'utf8');
 }
 
-function exportTSV(outputFile, listName, data) {
-	var a = [];
-	if (Object.prototype.toString.call(data[0]) === '[object Array]') {
-		for (var i = 0; i < data.length; i++) {
-			var r = data[i];
-			a.push(r.join('\t'));
+exports.exportTSV = function(outputFile, listName, data) {
+	var chunkSize = 10000;
+	
+	function getAsTSV(data) {
+		if (Object.prototype.toString.call(data[0]) === '[object Array]') {
+			var a = new Array(data.length);
+			for (var i = 0; i < data.length; i++) {
+				var r = data[i];
+				a[i] = r.join('\t');
+			}
+			return a.join('\n');
+		} else {
+			return data.join('\n');
 		}
-	} else {
-		a = data;
 	}
+	
+	//console.log(data.length);
+	
 	var filename = outputFile+'_'+listName+'.tsv';
 	ensureFolderFor(filename);
-	fs.writeFileSync(filename, a.join('\n'), 'binary');
+	
+	var writer = new BufferedWriter(filename);
+	
+	var n = Math.ceil(data.length/chunkSize);
+
+	for (var i = 0; i < n; i++) {
+		var s = '';
+		if (i > 0) s += '\n';
+		s += getAsTSV( data.slice(i*chunkSize, (i+1)*chunkSize) );
+		writer.write(s);
+	
+	}
+	writer.close();
 }
 
-function exportJSON(outputFile, listName, data) {
+exports.exportJSON = function(outputFile, listName, data) {
 	// JSON-Object in node.js fliegt manchmal auseinander. Deswegen hier per Hand:
 	
-	var createJSON = function (obj, indent) {
+	var writeJSON = function (obj, indent) {
 		var typ = Object.prototype.toString.call(obj);
+		var s = '';
 		switch (typ) {
 			case '[object Array]':
-				if (obj.length == 0) return '[]';
-				var a = [];
+				if (obj.length == 0) {
+					writer.write('[]');
+					return;
+				}
+				
+				writer.write((indent !== undefined) ? '[\r\t' + indent : '[');
+				
 				for (var i = 0; i < obj.length; i++)  {
-					a[i] = createJSON(obj[i], indent+'\t');
+					if (i > 0) writer.write((indent !== undefined) ? (',\r\t' + indent) : ',');
+					writeJSON(obj[i], indent+'\t');
 				}
-				if (indent === undefined) {
-					return '['+a.join(',')+']';
-				} else {
-					return '[\r\t' + indent + a.join(',\r\t'+indent) + '\r' + indent + ']';
-				}
+				
+				writer.write((indent !== undefined) ? ('\r' + indent + ']') : ']');
 			break;
 			case '[object Object]':
-				var a = [];
-				for (var i in obj) if (obj.hasOwnProperty(i)) {
-					a.push('"'+i+'":'+createJSON(obj[i], indent));
+				writer.write('{');
+				var notFirstLine = false;
+				for (var key in obj) if (obj.hasOwnProperty(key)) {
+					if (notFirstLine) writer.write(',');
+					notFirstLine = true;
+					writer.write('"'+key+'":');
+					writeJSON(obj[key], indent);
 				}
-				return '{'+a.join(',')+'}';
+				writer.write('}');
 			break;
 			case '[object Number]':
-				return ''+obj;
+				writer.write(obj.toString());
 			break;
 			case '[object String]':
-				return '"' + obj.replace(/\"/g, '\\"') + '"';
+				writer.write('"' + obj.replace(/\"/g, '\\"') + '"');
 			break;
 			default:
 				console.log('What is "'+typ+'"?');
 		} 
 	}
+	
 	var filename = outputFile+'_'+listName+'.json';
 	ensureFolderFor(filename);
-	fs.writeFileSync(filename, createJSON(data, ''), 'utf8');
+	
+	var writer = new BufferedWriter(filename);
+	writeJSON(data, '');
+	writer.close();
 }
 
 function ensureFolderFor(filename) {
@@ -243,10 +275,6 @@ function ensureFolderFor(filename) {
 	}
 }
 
-exports.PlanFile = PlanFile;
-exports.exportHeader = exportHeader;
-exports.exportTSV = exportTSV;
-exports.exportJSON = exportJSON;
 
 
 
