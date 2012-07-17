@@ -111,9 +111,9 @@ exports.PlanFile = function(filename) {
 			for (var i = 0; i < n; i++) {
 				var v = _readByte();
 				for (var j = 0; j < 8; j++) {
-					a[p] = (v > 127) ? 'l' : '0';
+					a[p] = (v % 2 == 1) ? 'l' : '0';
 					p++;
-					v = (v & 0x7F) << 1;
+					v = v >>> 1;
 				}
 			}
 			return a.join('');
@@ -122,9 +122,9 @@ exports.PlanFile = function(filename) {
 			for (var i = 0; i < n; i++) {
 				var v = _readByte();
 				for (var j = 0; j < 8; j++) {
-					b.writeUInt8((v > 127) ? 108 : 48, p);
+					b.writeUInt8((v % 2 == 1) ? 108 : 48, p);
 					p++;
-					v = (v & 0x7F) << 1;
+					v = v >>> 1;
 				}
 			}
 			return b.toString('binary');
@@ -134,8 +134,8 @@ exports.PlanFile = function(filename) {
 	me.getAsBinDump = function(v) {
 		var s = '';
 		for (var j = 0; j < 8; j++) {
-			s += (v > 127) ? 'l' : '0';
-			v = (v & 0x7F) << 1;
+			s += (v % 2 == 1) ? 'l' : '0';
+			v = v >>> 1;
 		}
 		return s;
 	}
