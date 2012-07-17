@@ -1,5 +1,7 @@
 var planUtils = require('./plan_utils.js');
 
+// GAT = Gattung?
+
 function decodePlanGAT(filename, outputFile) {
 	var header = {unknown:[]};
 
@@ -24,27 +26,36 @@ function decodePlanGAT(filename, outputFile) {
 
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		list1[i] = [];
-		list1[i][0] = f.readString(4).replace(/\x00/g, '');
-		list1[i][1] = f.readInteger(2);
-		list1[i][2] = f.readString(8).replace(/\x00/g, '');
-		for (var j = 0; j < 10; ++j) {
-			list1[i][3 + j] = f.readInteger(2);
-		}
+		list1[i] = [
+			f.readString(4).replace(/\x00/g, ''), // Short name
+			f.readInteger(2),                     // Length of short name
+			f.readString(8).replace(/\x00/g, ''), // Long name
+			f.readInteger(2),                     // always =  0 ?
+			f.readInteger(-2),                    // always = -1
+			f.readInteger(2),                     //
+			f.readInteger(2),                     //
+			f.readBinDump(12)                     // Binary code of cols in list 2
+		];
 	}
 	planUtils.exportTSV(outputFile, '1', list1);
 
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
-		list2[i] = [];
-		list2[i][0] = f.readHexDump(614);
+		list2[i] = [
+			f.readString(1),
+			f.readInteger(1)
+		];
+		for (var j = 0; j < 153; j++) {
+			list2[i].push(f.readInteger(4));	
+		}
 	}
 	planUtils.exportTSV(outputFile, '2', list2);
 
 	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
-		list3[i] = [];
-		list3[i][0] = f.readNullString();
+		list3[i] = [
+			f.readNullString()
+		];
 	}
 	planUtils.exportTSV(outputFile, '3', list3);
 	
@@ -58,14 +69,24 @@ function decodePlanGAT(filename, outputFile) {
 	
 	var data = [];
 	for (var i = 0; i < list1.length; ++i) {
-		data.push({
-			id: i,
+		var obj = {
+			gatId: i,
 			nameShort: list1[i][0],
-			nameLong: list1[i][2]
+			nameLong: list1[i][2].trim(),
+			type: []
 			// TODO: unknown values omitted
-		});
+		};
+		var typeId = list1[i][4];
+		var typeObj = {};
+		for (var k = 0; k < list2.length; k++) {
+			var language = list2[k][0];
+			var id3 = list2[k][typeId + 2];
+			var word = list3[id3][0];
+			typeObj[language] = word;
+		}
+		obj.type.push(typeObj);
+		data.push(obj);
 	}
-	
 	planUtils.exportJSON(outputFile, 'data1', data);
 }
 
