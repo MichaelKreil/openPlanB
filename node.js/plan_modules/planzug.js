@@ -22,15 +22,18 @@ exports.decodePlan = function (filename, outputFile) {
 	header.description = f.readString(header.size - f.pos);
 	
 	var
-		list1 = [];
+		list1 = [],
+		bitset = 0;
 		
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = [i];
-		// operation frequency b
-		// b & 0x7f               number of iterations
-		// (b & 0xff80) >> 7      interval in minutes between each operation
-		list1[i].push(f.readInteger(1));
-		list1[i].push(f.readInteger(1));
+		
+		bitset = f.readInteger(2);
+		// operation frequency:
+		// number of iterations
+		list1[i].push(bitset & 0x7f);
+		// interval in minutes between each iteration
+		list1[i].push((bitset & 0xff80) >> 7);
 	}
 	header.blockSize = (f.length - f.pos)/(2*header.listLength1);
 	
@@ -39,9 +42,10 @@ exports.decodePlan = function (filename, outputFile) {
 		throw "don't know how to handle blockSize " + header.blockSize;
 	}
 
+	
 	for (var i = 0; i < header.listLength1; i++) {
 		// days of operation for this train
-		// offset in W, list 1, or zero (train operates every day)
+		// offset in W list 1, or zero (train operates every day)
 		// TODO: don't know when which interpretation of value holds
 		if (header.blockSize == 12)
 			list1[i].push(f.readInteger(4));
@@ -51,12 +55,20 @@ exports.decodePlan = function (filename, outputFile) {
 		// UNKNOWN
 		// probably a reference to an offset in UK list 1
 		list1[i].push(f.readInteger(2));
+		
+		bitset = f.readInteger(2);
 		// UNKNOWN
-		// TODO: ?
-		// list1[i][4] & 256   -> look up field 9 in ATR list 4, else it is a RICH id
-		// list1[i][4] & 512   -> look up field 9 in ATR list 4, else it is a RICH id
-		// list1[i][4] & 2048  -> look up field 10 in ATR list 5, else there is no border crossing
-		list1[i].push(f.readInteger(2));
+		list1[i].push(bitset & 0x0ff);
+		// == 1:  look up field 'richId' in RICH list 1
+		// == 2:  look up field 'richId' in ATR list 4
+		// == 3:  look up field 'richId' in ATR list 4, direction entry there is 'special'
+		list1[i].push((bitset & 0x300) >> 8);
+		// UNKNOWN
+		list1[i].push((bitset & 0x400) >> 10);
+		// look up field 'grzId' in ATR list 5, else there is no border crossing
+		list1[i].push((bitset & 0x800) >> 11);
+		// UNKNOWN
+		list1[i].push((bitset & 0xf000) >> 12);
 		
 		//     train number 
 		// OR  offset in ATR, list 1
@@ -64,15 +76,16 @@ exports.decodePlan = function (filename, outputFile) {
 		//
 		list1[i].push(f.readInteger(2));
 		
-		// TODO: the following is still experimental
+		bitset = f.readInteger(2);
+		// type of this train (offset to GAT list 1, or zero)
+		list1[i].push(bitset >> 9);
+		// flags for interpreting train type and number
+		//   if bitset & 0x0001, then add 2^32 to train number
+		//   if bitset == 0, then train number above is an 'offset' in ATR list 1
 		//
-		// bitset b
-		//  if b & 0x100, then add 2^32 to train number
-		//  if b == 0, then interpretation 'offset' above
-		//  (b & 0xfe) >> 1   is reference to entry in GAT list 1
-		list1[i].push(f.readInteger(2));
+		list1[i].push(bitset & 0x1ff);
 
-		// attributes of this train (offset to ATR, list 2)
+		// attributes of this train (offset to ATR list 2)
 		list1[i].push(f.readInteger(2));
 		
 		// UNKNOWN
@@ -81,50 +94,58 @@ exports.decodePlan = function (filename, outputFile) {
 		// route of this train (references a LAUF id)
 		list1[i].push(f.readInteger(4));
 		
+		// FIELD 'richId'
 		// a direction (references a RICH id, or ATR list 4, or zero)
-		// TODO: don't know when which interpretation of value holds
+		// (cf. bitset above)
 		list1[i].push(f.readInteger(2));
 		
+		// FIELD 'richId'
 		// border crossing of this train (offset to ATR, list 5, or zero)
-		// TODO: don't know when which interpretation of value holds
+		// (cf. bitset above)
 		list1[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,iterations,interval,w1_ref?,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6,lauf1_ref?,unknown8,atr5_ref?');
-	
+	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,freqIterations,freqInterval,w1_ref?,unknown1,unknown2,dirFlags,unknown3,borderFlags,unknown4,trainNumber,trainType,trainNumberFlags,atr2_ref,unknown5,lauf1_ref?,rich1_ref?,grz_ref?');	
 	
 	
 	header.bytesLeft = f.check(outputFile);
 	planUtils.exportHeader(outputFile, header);
 	
 	
-	/*
-	// TODO: Check this code since all indexes have shifted  
 	var
 		data = [];
 	
 	for (var i = 0; i < list1.length; i++) {
-		var trainType = list1[i][6] >> 9;
-		var trainNumber = list1[i][5];
-		
 		data.push({
-			zugId: i,
-			laufId: list1[i][9],
-			wId: list1[i][2],
-			lineId: trainNumber,
-			trainNumberFlags: (list1[i][6] & 0x1ff),
-			trainType: trainType,
-			atr2Id: list1[i][7],
-			atr5Id: list1[i][11],
+			id: i,
 			frequency: {
-				iterations: (list1[i][1] & 0x7f),
-				interval: ((list1[i][1] & 0xff80) >> 7)
+				iterations: list1[i][1],
+				interval: list1[i][2]
 			},
-			unknown2: list1[i][3],
-			unknown3: list1[i][4],
-			unknown4: list1[i][8],
-			unknown5: list1[i][10]
+			wId: list1[i][3],
+			
+			unknown1: list1[i][4],
+			unknown2: list1[i][5],
+			
+			directionFlags: list1[i][6],
+			
+			unknown3: list1[i][7],
+			
+			borderFlags: list1[i][8],
+			
+			unknown4: list1[i][9],
+			
+			trainNumber: list1[i][10],
+			trainType: list1[i][11],
+			trainNumberFlags: list1[i][12],
+			
+			atr2Id: list1[i][13],
+			
+			unknown5: list1[i][14],
+			
+			laufId: list1[i][15],
+			richId: list1[i][16],
+			grzId: list1[i][17]
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data', data);
-	*/
 }
