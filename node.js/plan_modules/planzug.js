@@ -29,8 +29,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// operation frequency b
 		// b & 0x7f               number of iterations
 		// (b & 0xff80) >> 7      interval in minutes between each operation
-		list1[i].push(f.readInteger(1));
-		list1[i].push(f.readInteger(1));
+		list1[i].push(f.readInteger(2));
 	}
 	header.blockSize = (f.length - f.pos)/(2*header.listLength1);
 	
@@ -89,7 +88,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// TODO: don't know when which interpretation of value holds
 		list1[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'zugId,iterations,interval,wId?,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6,unknown7,unknown8,unknown9');
+	planUtils.exportTSV(outputFile, '1', list1, 'zugId,frequency,wId?,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6,unknown7,unknown8,unknown9');
 	
 	
 	
