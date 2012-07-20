@@ -180,7 +180,7 @@ exports.exportHeader = function(outputFile, data) {
 	fs.writeFileSync(filename, JSON.stringify(data, null, '\t'), 'utf8');
 }
 
-exports.exportTSV = function(outputFile, listName, data) {
+exports.exportTSV = function(outputFile, listName, data, header) {
 	var chunkSize = 10000;
 	
 	function getAsTSV(data) {
@@ -202,6 +202,7 @@ exports.exportTSV = function(outputFile, listName, data) {
 	ensureFolderFor(filename);
 	
 	var writer = new BufferedWriter(filename);
+	if (header !== undefined) writer.write(header.split(',').join('\t')+'\n');
 	
 	var n = Math.ceil(data.length/chunkSize);
 
