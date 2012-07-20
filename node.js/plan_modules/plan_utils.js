@@ -104,38 +104,30 @@ exports.PlanFile = function(filename) {
 		return _clamp('000'+v.toString(16), 2);
 	}
 	
-	me.readBinDump = function(n) {
-		var p = 0;
+	me.readBinDump = function(n, backwards) {
 		if (n < 1000) {
-			var a = new Array(n*8);
-			for (var i = 0; i < n; i++) {
-				var v = _readByte();
-				for (var j = 0; j < 8; j++) {
-					a[p] = (v % 2 == 1) ? 'l' : '0';
-					p++;
-					v = v >>> 1;
-				}
-			}
+			var a = new Array(n);
+			for (var i = 0; i < n; i++) a[i] = me.getAsBinDump(_readByte(), backwards);
 			return a.join('');
 		} else {
 			var b = new Buffer(n*8);
-			for (var i = 0; i < n; i++) {
-				var v = _readByte();
-				for (var j = 0; j < 8; j++) {
-					b.writeUInt8((v % 2 == 1) ? 108 : 48, p);
-					p++;
-					v = v >>> 1;
-				}
-			}
+			for (var i = 0; i < n; i++) b.write(me.getAsBinDump(_readByte(), backwards), i*8, 8);
 			return b.toString('binary');
 		}
 	}
 	
-	me.getAsBinDump = function(v) {
+	me.getAsBinDump = function(v, backwards) {
 		var s = '';
-		for (var j = 0; j < 8; j++) {
-			s += (v % 2 == 1) ? 'l' : '0';
-			v = v >>> 1;
+		if (backwards) {
+			for (var j = 0; j < 8; j++) {
+				s = ((v % 2 == 1) ? 'l' : '0') + s;
+				v = v >>> 1;
+			}
+		} else {
+			for (var j = 0; j < 8; j++) {
+				s += (v % 2 == 1) ? 'l' : '0';
+				v = v >>> 1;
+			}
 		}
 		return s;
 	}
