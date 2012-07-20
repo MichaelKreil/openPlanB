@@ -28,9 +28,13 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		list1[i] = [i, f.readInteger(-4), f.readInteger(2)];
+		list1[i] = [
+			i,
+			f.readInteger(-4),
+			f.readInteger(2)
+		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'bz1Id,offset,unknown');
 	
 	
 	
@@ -41,7 +45,7 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	var list2 = [];
 	for (var i = 0; i < list1.length - 1; ++i) {
-		list2[i] = [];
+		list2;
 		
 		if (list1[i][1] < 0) continue;
 
@@ -61,12 +65,18 @@ exports.decodePlan = function (filename, outputFile) {
 			timeList.push( f.readInteger(1) ^ (xorKey & 0xff) );
 		}
 		
-		list2[i] = decodePlanBZsublist(timeList);
+		timeList = decodePlanBZsublist(timeList);
+		for (var j = 0; j < timeList.length; j++) {
+			var time = timeList[j];
+			time.unshift(i);
+			list2.push(time);	
+		}
+		
 	}
 	// remove dummy entry
 	list1.pop();
 	
-	planUtils.exportTSV(outputFile, '2', list2);
+	planUtils.exportTSV(outputFile, '2', list2, 'bzId1,trainId,arrTime,depTime');
 	
 	
 	
@@ -77,7 +87,7 @@ exports.decodePlan = function (filename, outputFile) {
 	
 
 	// Export JSON
-	
+	/*
 	var data = [];
 	for (var i = 0; i < list1.length; ++i) {
 		var timeList = list2[i];
@@ -87,8 +97,8 @@ exports.decodePlan = function (filename, outputFile) {
 		}
 		data[i] = { id:i, times:timeList };
 	}
-	
 	planUtils.exportJSON(outputFile, 'data', data);
+	*/
 }
 
 function parseDateWord(dateWord) {

@@ -23,7 +23,7 @@ exports.decodePlan = function(filename, outputFile) {
 			f.readInteger(2)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'charId,sortingIndex');
 	
 	header.bytesLeft = f.check(outputFile);
 	

@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanKANT(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -24,17 +24,28 @@ function decodePlanKANT(filename, outputFile) {
 		list1 = [],
 		list2 = [];
 	
-	for (var i = 0; i < header.listLength1; i++) list1[i] = f.readInteger(4);
+	for (var i = 0; i < header.listLength1; i++) {
+		list1.push([
+			i,
+		 	f.readInteger(4)
+		]);
+	}
+	planUtils.exportTSV(outputFile, '1', list1, 'kant1Id,offset');
 
+	var id = 0;
 	for (var i = 0; i < header.listLength2; i++) {
-		list2[i] = [
+		while (list1[id][1] <= i) id++; 
+		list2.push([
+			i,
+			id,
 			f.readInteger(4),
 			f.readInteger(3),
 			f.readHexDump(1),
 			f.readInteger(1),
 			f.readHexDump(1)
-		];
+		]);
 	}
+	planUtils.exportTSV(outputFile, '2', list2, 'kant2Id,kant1Id,bahnhofId,unknown1,unknown2,dauer,unknown4');
 
 	header.bytesLeft = f.check(outputFile);
 	
@@ -47,22 +58,18 @@ function decodePlanKANT(filename, outputFile) {
 			bahnhofid: i,
 			kanten:[]
 		}
-		for (var j = j0; j < list1[i]; j++) data[i].kanten.push({
-			bahnhofid:list2[j][0],
-			unknown1:list2[j][1],
-			unknown2:list2[j][2],
-			dauer:list2[j][3],
-			unknown4:list2[j][4]
+		for (var j = j0; j < list1[i][1]; j++) data[i].kanten.push({
+			bahnhofid:list2[j][2],
+			unknown1:list2[j][3],
+			unknown2:list2[j][4],
+			dauer:list2[j][5],
+			unknown4:list2[j][6]
 		});
-		j0 = list1[i];
+		j0 = list1[i][1];
 	}
 	
 	// Export
 	
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', list1);
-	planUtils.exportTSV(outputFile, '2', list2);
 	planUtils.exportJSON(outputFile, 'data', data);
 }
-
-exports.decodePlan = decodePlanKANT;

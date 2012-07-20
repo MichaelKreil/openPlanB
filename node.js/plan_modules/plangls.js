@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanGLS(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -28,86 +28,96 @@ function decodePlanGLS(filename, outputFile) {
 	
 	header.description = f.readString(header.size - f.pos);
 	
-	var
-		data1 = [],
-		data2 = [],
-		data3 = [],
-		data4 = [];
+	var list1 = [];
+	var list2 = [];
+	var list3 = [];
+	var list4 = [];
 		
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [];
-		// references a train, Z id
-		data1[i][0] = f.readInteger(4);
+		list1.push([
+			i,
+			
+			// references a train, Z id
+			f.readInteger(4),
 		
-		// number of iteration for which this information holds
-		//  (cf. train frequency)
-		data1[i][1] = f.readInteger(2);
+			// number of iteration for which this information holds
+			//  (cf. train frequency)
+			f.readInteger(2),
 		
-		// TODO: check: probably offset in file
-		data1[i][2] = f.readInteger(4);
+			// TODO: check: probably offset in file
+			f.readInteger(4)
+		]);
 	}
+	planUtils.exportTSV(outputFile, '1', list1, 'gls1Id,offset,unknown1,unknown2');
 	
 	for (var i = 0; i < header.listLength1; i++) {
-		data2[i] = [];
 		var n = f.readInteger(integerByteCount);
 		for (var j = 0; j < n; j++) {
-			// stop on route for which this platform information holds
-			// number 0 corresponds to the first entry of the LAUF route
-			data2[i].push(f.readInteger(1));
+			list2.push([
+				i,
+				j,
+				
+				// stop on route for which this platform information holds
+				// number 0 corresponds to the first entry of the LAUF route
+				f.readInteger(1),
 			
-			// UNKNOWN
-			data2[i].push(f.readHexDump(1));
+				// UNKNOWN
+				f.readHexDump(1),
 			
-			// position in GLS list 3
-			data2[i].push(f.readInteger(integerByteCount));
+				// position in GLS list 3
+				f.readInteger(integerByteCount)
+			]);
 		}
 	}
+	planUtils.exportTSV(outputFile, '2', list2, 'gls1Id,gls2Id,unknown1,unknown2,gls3Id');
 	
 	for (var i = 0; i < header.listLength3; i++) {
-		data3[i] = [];
-		// position in GLS list 4
-		data3[i].push(f.readInteger(2));
-		
-		// UNKNOWN
-		data3[i].push(f.readInteger(integerByteCount));
+		list3.push([
+			i,
+			
+			// position in GLS list 4
+			f.readInteger(2),
+			
+			// UNKNOWN
+			f.readInteger(integerByteCount)
+		]);
 	}
+	planUtils.exportTSV(outputFile, '3', list3, 'gls3Id,gls4Id,unknown');
 	
 	for (var i = 0; i < header.listLength4; i++) {
 		// name of platform
-		data4[i] = f.readString(8);
+		list4.push([
+			i,
+			f.readString(8)
+		]);
 	}
+	planUtils.exportTSV(outputFile, '4', list4, 'gls4Id,text');
 	
 	header.bytesLeft = f.check(outputFile);
 	
-	// Datenstruktur erzeugen
-	var
-		data = [];
+	planUtils.exportHeader(outputFile, header);
 	
-	if (data1.length != data2.length)
-		throw "expected lists of same size";
+
+	// Datenstruktur erzeugen
+	var data = [];
+	var i2 = 0;
 		
-	for (var i = 0; i < data1.length; i++) {
-		data[i] = {
+	for (var i = 0; i < list1.length; i++) {
+		var obj = {
 			id: i,
-			trainId: data1[i][0],
-			frequencyId: data1[i][1],
+			trainId: list1[i][1],
+			frequencyId: list1[i][2],
 			platformAtStops: []
 		}
-		for (var j = 0; j < data2[i].length / 3; ++j) {
-			var stopData = {
-				stopNumber: data2[i][3 * j],
-				platform: data4[ data3[ data2[i][3 * j + 2] ] [0] ].trim()
-			};
-			data[i].platformAtStops.push(stopData);
+		while ((i2 < list2.length) && (list2[i2][0] == i)) {
+			obj.platformAtStops.push({
+				stopNumber: list2[i2][2],
+				platform: list4[ list3[ list2[i2][4] ] [1] ][1].trim()
+			});
+			i2++;
 		}
+		data.push(obj);
 	}
 	
-	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', data1);
-	planUtils.exportTSV(outputFile, '2', data2);
-	planUtils.exportTSV(outputFile, '3', data3);
-	planUtils.exportTSV(outputFile, '4', data4);
 	planUtils.exportJSON(outputFile, 'data', data);
 }
-
-exports.decodePlan = decodePlanGLS;

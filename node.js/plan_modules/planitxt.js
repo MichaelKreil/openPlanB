@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanITXT(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -37,43 +37,47 @@ function decodePlanITXT(filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1+1; i++) {
 		list1[i] = [
+			i,
 			f.readInteger(-4),
 			f.readInteger(-2),
 			f.readInteger(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'itxt1Id,unknown1,unknown2,unknown3');
 	
 	
 	
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
 		list2[i] = [
-			f.readHexDump(4),
-			f.readHexDump(1),
-			f.readHexDump(1),
-			f.readHexDump(2),
-			f.readHexDump(2)
+			i,
+			f.readInteger(4),
+			f.readInteger(1),
+			f.readInteger(1),
+			f.readInteger(2),
+			f.readInteger(2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '2', list2);
+	planUtils.exportTSV(outputFile, '2', list2, 'itxt2Id,unknown1,unknown2,unknown3,unknown4,unknown5');
 	
 	
 	
 	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
 		list3[i] = [
+			i,
 			f.readInteger(4),
 			f.readInteger(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '3', list3);
+	planUtils.exportTSV(outputFile, '3', list3, 'itxt3Id,unknown1,unknown2');
 	
 	
 	
 	var list4 = [];
 	for (var i = 0; i < header.listLength4; i++) {
 		list4[i] = [
+			i,
 			f.readInteger(1),
 			f.readInteger(1),
 			f.readInteger(1),
@@ -81,21 +85,25 @@ function decodePlanITXT(filename, outputFile) {
 			f.readInteger(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '4', list4);
+	planUtils.exportTSV(outputFile, '4', list4, 'itxt4Id,unknown1,unknown2,unknown3,unknown4,unknown5');
 	
 	
 	
 	var list5 = [];
 	var p0 = f.pos;
+	var i = 0;
 	while (f.pos < f.length) {
-		list5.push([f.pos-p0, f.readNullString()]);
+		list5.push([
+			i,
+			f.pos-p0,
+			f.readNullString()
+		]);
+		i++
 	}
-	planUtils.exportTSV(outputFile, '5', list5);
+	planUtils.exportTSV(outputFile, '5', list5, 'itxt4Id,offset,unknown1');
 	
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	planUtils.exportHeader(outputFile, header);
 }
-
-exports.decodePlan = decodePlanITXT;

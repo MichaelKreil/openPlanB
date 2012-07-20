@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanVW(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -20,36 +20,41 @@ function decodePlanVW(filename, outputFile) {
 	
 	header.description = f.readString(header.size - f.pos);
 	
-	var
-		data1 = [],
-		data2 = [];
-		
-	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [];
-		data1[i][0] = f.readInteger(1);
-		data1[i][1] = f.readInteger(1);
-		data1[i][2] = f.readInteger(1);
-		data1[i][3] = f.readInteger(1);
-		data1[i][4] = f.readInteger(1);
-		data1[i][5] = f.readInteger(1);
-	}
 	
-	for (var i = 0; i < header.listLength2; i++) {
-		data2[i] = [];
-		data2[i][0] = f.readInteger(4);
-		data2[i][1] = f.readInteger(2);
-		data2[i][2] = f.readInteger(1);
-		data2[i][3] = f.readInteger(1);
-		data2[i][4] = f.readInteger(4);
-		data2[i][5] = f.readInteger(2);
+	
+	var list1 = [];
+	for (var i = 0; i < header.listLength1; i++) {
+		list1[i] = [
+			i,
+			f.readInteger(1),
+			f.readInteger(1),
+			f.readInteger(1),
+			f.readInteger(1),
+			f.readInteger(1),
+			f.readInteger(1)
+		];
 	}
+	planUtils.exportTSV(outputFile, '1', list1, 'vw1Id,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6');
+	
+	
+	
+	var list2 = [];
+	for (var i = 0; i < header.listLength2; i++) {
+		list2[i] = [
+			i,
+			f.readInteger(4),
+			f.readInteger(2),
+			f.readInteger(1),
+			f.readInteger(1),
+			f.readInteger(4),
+			f.readInteger(2)
+		];
+	}
+	planUtils.exportTSV(outputFile, '2', list2, 'vw2Id,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6');
+	
+	
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	planUtils.exportHeader(outputFile, header);
-	
-	planUtils.exportTSV(outputFile, '1', data1);
-	planUtils.exportTSV(outputFile, '2', data2);
 }
-
-exports.decodePlan = decodePlanVW;

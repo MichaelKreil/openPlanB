@@ -19,22 +19,25 @@ exports.decodePlan = function(filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		list1.push([
+			i,
 			f.readInteger(4),
 			f.readInteger(4),
 			f.readInteger(2)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'info1Id,unknown1,unknown2,unknown3');
 	
 	var list2 = [];
 	var p0 = f.pos;
+	var i = 0;
 	while (f.pos < f.length) {
 		list2.push([
+			i,
 			f.pos - p0,
 			f.readNullString()
 		]);
 	}
-	planUtils.exportTSV(outputFile, '2', list2);
+	planUtils.exportTSV(outputFile, '2', list2, 'info2Id,offset,unknown1');
 	
 	header.bytesLeft = f.check(outputFile);
 	

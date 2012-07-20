@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanNG(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -43,40 +43,39 @@ function decodePlanNG(filename, outputFile) {
 	
 	header.description = f.readHexDump(header.size - f.pos);
 	
-	var
-		data1 = [],
-		data2 = [];
-		
+	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [];
-		data1[i][0] = f.readInteger(1);
-		data1[i][1] = f.readInteger(1);
-		data1[i][2] = f.readInteger(2);
-		data1[i][3] = f.readInteger(4);
-		data2[i] = [];
+		list1.push([
+			i,
+			f.readInteger(1),
+			f.readInteger(1),
+			f.readInteger(2),
+			f.readInteger(4)
+		]);
 	}
-	data1.push([0,0,0,f.length]);
+	planUtils.exportTSV(outputFile, '1', list1, 'ng1Id,unknown1,unknown2,unknown3,unknown4');
+	
+	
+	list1.push([0,0,0,f.length]);
 	
 	var
+		list2 = [];
 		i = 0,
 		p0 = f.pos;
 	
 	while (f.pos < f.length) {
-		if (f.pos-p0 >= data1[i+1][3]) {
+		if (f.pos-p0 >= list1[i+1][4]) {
 			i++;
-			data2[i].push(f.readInteger(4));
+			list2.push([i, f.readInteger(1)]);
 		} else {
-			data2[i].push(f.readInteger(1));
+			list2.push([i, f.readInteger(1)]);
 		}
 	}
+	planUtils.exportTSV(outputFile, '2', list2, 'ng1Id,value');
 	
-	data1.pop();
+	list1.pop();
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', data1);
-	planUtils.exportTSV(outputFile, '2', data2);
 }
-
-exports.decodePlan = decodePlanNG;

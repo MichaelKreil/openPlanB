@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanGRZ(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -24,34 +24,34 @@ function decodePlanGRZ(filename, outputFile) {
 	// List 1 stores the starting position of Bytes in List 2
 
 	var list1 = [];
-	for (var i = 0; i < header.listLength1; i++) list1[i] = f.readInteger(4);
-	//planUtils.exportTSV(outputFile, '1', list1);
+	for (var i = 0; i < header.listLength1; i++) {
+		list1[i] = [
+			i,
+			f.readInteger(4)
+		];
+	}
+	planUtils.exportTSV(outputFile, '1', list1, 'grz1Id,offset');
 	
 	
 	
 	// Read the rest of the file in to list 2
 	
 	var n = f.length - f.pos
-	list1.push(n)
 	var id = -1;
 	
 	var list2 = [];
-	for (var i = 0; i < list1.length - 1; i++) {
-		list2[i] = [];
-		
-		list2[i].push(f.readNullString());
-		list2[i].push(f.readNullString());
-		
-		// expected entry size: string length + two zero-bytes at the string ends
-		if ( (list2[i][0].length + list2[i][1].length + 2) != (list1[i+1] - list1[i]) ) {
-			console.warn('WARNING: unexpected string sizes');
-		}
+	for (var i = 0; i < list1.length; i++) {
+		list2[i] = [
+			i,
+			f.readNullString(),
+			f.readNullString()
+		];
 	}
+	planUtils.exportTSV(outputFile, '2', list2, 'grz2Id,unknown1,unknown2');
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '2', list2);
 	
 	var json = [];
 	for (var i = 0; i < list2.length; i++) {
@@ -63,5 +63,3 @@ function decodePlanGRZ(filename, outputFile) {
 	}
 	planUtils.exportJSON(outputFile, 'data', json);
 }
-
-exports.decodePlan = decodePlanGRZ;

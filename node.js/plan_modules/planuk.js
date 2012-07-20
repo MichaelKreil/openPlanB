@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanUK(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -35,48 +35,58 @@ function decodePlanUK(filename, outputFile) {
 			console.error('ERROR: Byte-Länge geht irgendwie nicht auf.')
 	}
 	
-	var
-		data1 = [],
-		data2 = [],
-		data3 = [],
-		data4 = [];
-		
+	
+	
+	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [
+		list1[i] = [
+			i,
 			f.readInteger(2), // Anzahl der Einträge in Liste 2
 			f.readInteger(2)  // Id des ersten Eintrages in Liste 2
 		];
 	}
+	planUtils.exportTSV(outputFile, '1', list1, 'uk1Id,length,offset');
 	
+	
+	
+	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
-		data2[i] = [
+		list2[i] = [
+			i,
 			f.readInteger(2), // Erster  Eintrag in Liste 1
 			f.readInteger(2), // Letzter Eintrag in Liste 1
 			f.readInteger(header.list2Block3Size) // Id eines Eintrages in Liste 3
 		];
 	}
+	planUtils.exportTSV(outputFile, '2', list2, 'uk2Id,begin,end,length');
 	
+	
+	
+	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
-		data3[i] = [
+		list3[i] = [
+			i,
 			f.readInteger(-2)
 		];
 	}
+	planUtils.exportTSV(outputFile, '3', list3, 'uk3Id,unknown1');
 	
+	
+	
+	var list4 = [];
 	for (var i = 0; i < header.listLength4; i++) {
-		data4[i] = [
+		list4[i] = [
+			i,
 			f.readInteger(4), // Bahnhof-Id
 			f.readInteger(2), // Erster  Eintrag in Liste 1
 			f.readInteger(2), // Letzer  Eintrag in Liste 1
 			f.readInteger(2)  // irgendwas zwischen 0 und 99
 		];
 	}
+	planUtils.exportTSV(outputFile, '4', list4, 'uk4Id,unknown1,unknown2,unknown3,unknown4');
+
+
 
 	header.bytesLeft = f.check(outputFile);
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', data1);
-	planUtils.exportTSV(outputFile, '2', data2);
-	planUtils.exportTSV(outputFile, '3', data3);
-	planUtils.exportTSV(outputFile, '4', data4);
 }
-
-exports.decodePlan = decodePlanUK;

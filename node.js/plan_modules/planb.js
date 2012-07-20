@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanB(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var f = new planUtils.PlanFile(filename);
 	
 	
@@ -33,36 +33,33 @@ function decodePlanB(filename, outputFile) {
 	
 	// Daten einlesen
 	
-	var
-		list1 = [],
-		list2 = [],
-		list3 = [];
-		
+	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		list1[i] = [];
-		list1[i][0] = f.readInteger(2);
-		list1[i][1] = f.readInteger(2);
-		list1[i][2] = f.readInteger(2);
-		list1[i][3] = f.readInteger(4);
-		list1[i][4] = f.readInteger(4);
+		list1[i] = [
+			i,
+			f.readInteger(2),
+			f.readInteger(2),
+			f.readInteger(2),
+			f.readInteger(4),
+			f.readInteger(4)
+		];
 	}
+	planUtils.exportTSV(outputFile, '1', list1, 'b1Id,unknown1,unknown2,unknown3,unknown4,unknown5');
 	
-	var lastIndex = -1;
+	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
-		list2[i] = [];
-		list2[i][0] = f.readInteger(4);
-		list2[i][1] = f.readInteger(4);
+		list2[i] = [
+			i,
+			f.readInteger(4),
+			f.readInteger(4)
+		];
 	}
-	
 	var pos0 = f.pos;
 	for (var i = 0; i < header.listLength2; i++) {
-		list3[f.pos-pos0] = f.readNullString();
+		f.pos = pos0 + list2[i][2]; 
+		list2[i][2] = f.readNullString();
 	}
-	
-	for (var i = 0; i < header.listLength2; i++) {
-		list2[i][2] = list3[list2[i][1]];
-	}
-	
+	planUtils.exportTSV(outputFile, '2', list2, 'id,unknown1,unknown2');
 	header.bytesLeft = f.check(outputFile);
 	
 	
@@ -75,18 +72,17 @@ function decodePlanB(filename, outputFile) {
 	for (var i = 0; i < header.listLength1; i++) {
 		data[i] = {
 			id: i,
-			unknown1: list1[i][0],
-			unknown2: list1[i][1],
-			unknown3: list1[i][2],
-			IBNR: list1[i][3],
-			name: list2[list1[i][4]][2],
+			unknown1: list1[i][1],
+			unknown2: list1[i][2],
+			unknown3: list1[i][3],
+			IBNR: list1[i][4],
+			name: list2[list1[i][5]][2],
 			synonyms: []
 		}
-		list1[i][5] = list2[list1[i][4]][2];
 	}
 	for (var i = 0; i < header.listLength2; i++) {
-		if (list1[list2[i][0]][4] != i) {
-			data[list2[i][0]].synonyms.push(list2[i][2]);
+		if (list1[list2[i][1]][5] != i) {
+			data[list2[i][1]].synonyms.push(list2[i][2]);
 		}
 	}
 	
@@ -95,9 +91,5 @@ function decodePlanB(filename, outputFile) {
 	// Alles exportieren
 	
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', list1);
-	planUtils.exportTSV(outputFile, '2', list2);
 	planUtils.exportJSON(outputFile, 'data', data);
 }
-
-exports.decodePlan = decodePlanB;

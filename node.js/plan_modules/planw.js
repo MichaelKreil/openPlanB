@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanW(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -41,17 +41,29 @@ function decodePlanW(filename, outputFile) {
 	
 	header.description = f.readString(header.size - f.pos);
 	
+	
+	
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		list1[i] = f.readInteger(header.blockSize1);
+		list1[i] = [
+			i,
+			f.readInteger(header.blockSize1)
+		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'w1Id,w2Id');
+	
+	
 	
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
-		list2[i] = f.readBinDump(header.blockSize2);
+		list2[i] = [
+			i,
+			f.readBinDump(header.blockSize2, true)
+		];
 	}
-	planUtils.exportTSV(outputFile, '2', list2);
+	planUtils.exportTSV(outputFile, '2', list2, 'w2Id,unknown1');
+	
+	
 	
 	header.bytesLeft = f.check(outputFile);
 	planUtils.exportHeader(outputFile, header);
@@ -59,8 +71,8 @@ function decodePlanW(filename, outputFile) {
 	var data = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		var daysBitset = 'all';
-		if (list1[i]) {
-			daysBitset = list2[ list1[i] - 1 ];
+		if (list1[i][1]) {
+			daysBitset = list2[ list1[i][1] - 1 ][1];
 			daysBitset = daysBitset.substring(2, daysBitset.length - 2);
 		}
 		data.push({
@@ -70,5 +82,3 @@ function decodePlanW(filename, outputFile) {
 	}
 	planUtils.exportJSON(outputFile, 'data', data);
 }
-
-exports.decodePlan = decodePlanW;

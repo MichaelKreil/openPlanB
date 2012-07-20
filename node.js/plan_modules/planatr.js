@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanATR(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var f = new planUtils.PlanFile(filename);
 	
 	// Header einlesen
@@ -49,18 +49,13 @@ function decodePlanATR(filename, outputFile) {
 
 	header.description = f.readString(header.size - f.pos);
 
-	var
-		list1 = [],
-		list2 = [],
-		list3 = [],
-		list4 = [],
-		list5 = [];
-	
 
+
+	var list1 = [];
 	// List 1 contains information about train numbers and types
 	// in case that they change between start and final destination
 	for (var i = 0; i < header.listLength1; i++) {
-		list1[i] = [];
+		list1[i] = [i];
 		// train number
 		list1[i].push(f.readInteger(2));
 		// UNKNOWN, probably some flag
@@ -74,11 +69,15 @@ function decodePlanATR(filename, outputFile) {
 		// last stop on route for which this information (number, type) is valid
 		list1[i].push(f.readInteger(1));
 	}
+	planUtils.exportTSV(outputFile, '1', list1, 'atr1Id,unknown1,unknown2,unknown3,unknown4,unknown5');
 
+
+
+	var list2 = [];
 	// List 2 contains information about train amenities
 	//  such as on-board restaurant and facilities for people with a disability
 	for (var i = 0; i < header.listLength2; i++) {
-		list2[i] = [];
+		list2[i] = [i];
 		// train property
 		// character order seems to be swapped in original file
 		// e.g. NK =~ 'KN' (see text in ATXD)
@@ -102,14 +101,25 @@ function decodePlanATR(filename, outputFile) {
 		else
 			list2[i].push(f.readInteger(2));
 	}
+	planUtils.exportTSV(outputFile, '2', list2, 'atr2Id,unknown1,unknown2,unknown3,unknown4');
 	
+	
+	
+	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
 		// UNKNOWN
-		list3[i] = [f.readHexDump(list3BlockSize)];
+		list3[i] = [
+			i,
+			f.readHexDump(list3BlockSize)
+		];
 	}
+	planUtils.exportTSV(outputFile, '3', list3, 'atr3Id,unknown1,unknown2');
 	
+	
+	
+	var list4 = [];
 	for (var i = 0; i < header.listLength4; i++) {
-		list4[i] = [];
+		list4[i] = [i];
 		
 		// TODO: sometimes first entry seems to indicate number of 
 		//   following entries which belong to a group
@@ -124,9 +134,13 @@ function decodePlanATR(filename, outputFile) {
 		// last stop on route for which this information is valid
 		list4[i].push(f.readInteger(1));
 	}
+	planUtils.exportTSV(outputFile, '4', list4, 'atr4Id,unknown1,unknown2,unknown3');
 	
+	
+	
+	var list5 = [];
 	for (var i = 0; i < header.listLength5; i++) {
-		list5[i] = [];
+		list5[i] = [i];
 		
 		// references a border station, GRZ id
 		list5[i].push(f.readInteger(2));
@@ -137,27 +151,25 @@ function decodePlanATR(filename, outputFile) {
 		// stop on route after border crossing
 		list5[i].push(f.readInteger(1));
 	}
+	planUtils.exportTSV(outputFile, '5', list5, 'atr5Id,unknown1,unknown2,unknown3');
+	
+	
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	// Alles exportieren
 	
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', list1);
-	planUtils.exportTSV(outputFile, '2', list2);
-	planUtils.exportTSV(outputFile, '3', list3);
-	planUtils.exportTSV(outputFile, '4', list4);
-	planUtils.exportTSV(outputFile, '5', list5);
 	
 	var json1 = [];
 	for (var i = 0; i < list1.length; i++) {
 		json1.push({
 			id: i,
-			trainNumber: list1[i][0],
-			trainNumberFlags: list1[i][1],
-			trainType: list1[i][2] >> 1,
-			firstStop: list1[i][3],
-			lastStop: list1[i][4]
+			trainNumber: list1[i][1],
+			trainNumberFlags: list1[i][2],
+			trainType: list1[i][3] >> 1,
+			firstStop: list1[i][4],
+			lastStop: list1[i][5]
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data1', json1);
@@ -166,9 +178,9 @@ function decodePlanATR(filename, outputFile) {
 	for (var i = 0; i < list4.length; i++) {
 		json4.push({
 			id: i,
-			directionId: list4[i][0],
-			firstStop: list4[i][1],
-			lastStop: list4[i][2]
+			directionId: list4[i][1],
+			firstStop: list4[i][2],
+			lastStop: list4[i][3]
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data4', json4);
@@ -177,12 +189,10 @@ function decodePlanATR(filename, outputFile) {
 	for (var i = 0; i < list5.length; i++) {
 		json5.push({
 			id: i,
-			borderId: list5[i][0],
-			stopBefore: list5[i][1],
-			stopAfter: list5[i][2]
+			borderId: list5[i][1],
+			stopBefore: list5[i][2],
+			stopAfter: list5[i][3]
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data5', json5);
 }
-
-exports.decodePlan = decodePlanATR;

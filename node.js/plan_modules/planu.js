@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanU(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -32,19 +32,25 @@ function decodePlanU(filename, outputFile) {
 	
 	header.description = f.readString(header.size - f.pos);
 	
-	var
-		data1 = [],
-		data2 = [];
 	
+	
+	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [
+		list1[i] = [
+			i,
 			f.readInteger(4), // Bahnhof-Id
 			f.readInteger(2),
 			f.readInteger(2)
 		];
 	}
+	planUtils.exportTSV(outputFile, '1', list1, 'u1Id,unknown1,unknown2,unknown3');
+	
+	
+	
+	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
-		data2[i] = [
+		list2[i] = [
+			i,
 			f.readInteger(4), // Bahnhof-Id
 			f.readInteger(4),
 			f.readInteger(2),
@@ -54,14 +60,13 @@ function decodePlanU(filename, outputFile) {
 			f.readInteger(1)
 		];
 	}
+	planUtils.exportTSV(outputFile, '2', list2, 'u2Id,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6,unknown7');
+	
+	
 	
 	f.checkBytes('FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF');
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', data1);
-	planUtils.exportTSV(outputFile, '2', data2);
 }
-
-exports.decodePlan = decodePlanU;

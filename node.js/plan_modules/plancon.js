@@ -36,13 +36,14 @@ exports.decodePlan = function (filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		list1.push([
+			i,
 			f.readInteger(4),
-			f.readHexDump(1),
-			f.readHexDump(1),
+			f.readInteger(1),
+			f.readInteger(1),
 			f.readInteger(4)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'con1Id,unknown1,unknown2,unknown3,unknown4');
 	
 	
 	
@@ -50,9 +51,12 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
-		list2.push(f.readInteger(4));
+		list2.push([
+			i,
+			f.readInteger(4)
+		]);
 	}
-	planUtils.exportTSV(outputFile, '2', list2);
+	planUtils.exportTSV(outputFile, '2', list2, 'con2Id,unknown');
 	
 	
 	
@@ -60,9 +64,12 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
-		list3.push(f.readInteger(4));
+		list3.push([
+			i,
+			f.readInteger(4)
+		]);
 	}
-	planUtils.exportTSV(outputFile, '3', list3);
+	planUtils.exportTSV(outputFile, '3', list3, 'con3Id,unknown');
 	
 	
 	
@@ -72,12 +79,13 @@ exports.decodePlan = function (filename, outputFile) {
 	if (header.listLength4 > 0) {
 		for (var i = 0; i < header.listLength4+1; i++) {
 			list4.push([
+				i,
 				f.readInteger(-4),
 				f.readInteger(4)
 			]);
 		}
 	}
-	planUtils.exportTSV(outputFile, '4', list4);
+	planUtils.exportTSV(outputFile, '4', list4, 'con4Id,unknown1,unknown2');
 	
 	
 	
@@ -86,11 +94,12 @@ exports.decodePlan = function (filename, outputFile) {
 	var list5 = [];
 	for (var i = 0; i < header.listLength5; i++) {
 		list5.push([
+			i,
 			f.readInteger(4),
 			f.readInteger(2)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '5', list5);
+	planUtils.exportTSV(outputFile, '5', list5, 'con5Id,unknown1,unknown2');
 	
 	
 	

@@ -1,6 +1,6 @@
 var planUtils = require('./plan_utils.js');
 
-function decodePlanBETR(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 	
 	var f = new planUtils.PlanFile(filename);
@@ -22,76 +22,84 @@ function decodePlanBETR(filename, outputFile) {
 	header.description = f.readString(header.size - f.pos);
 	
 	
-	var data1 = [];
+	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		data1[i] = [];
-		data1[i][0] = f.readNullString();
-		data1[i][1] = f.readNullString();
-		data1[i][2] = f.readNullString();
+		list1.push([
+			i,
+			f.readNullString(),
+			f.readNullString(),
+			f.readNullString()
+		]);
 	}
+	planUtils.exportTSV(outputFile, '1', list1, 'betr1Id,short,middle,long');
 	
-	var data2 = [];
-	for (var i = 0; i < header.listLength2; i++) {
-		data2[i] = [];
-		data2[i][0] = f.readNullString();
-	}
-	for (var i = 0; i < header.listLength2; i++) {
-		data2[i][1] = f.readInteger(2);
-	}
 	
-	var data3 = [];
+	var list2 = [];
+	for (var i = 0; i < header.listLength2; i++) {
+		list2[i] = [
+			i,
+			f.readNullString()
+		];
+	}
+	for (var i = 0; i < header.listLength2; i++) {
+		list2[i].push(f.readInteger(2));
+	}
+	planUtils.exportTSV(outputFile, '2', list2, 'betr2Id,short,betr1Id');
+	
+	
+	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
-		data3[i] = [];
-		data3[i][0] = f.readInteger(1);
-		data3[i][1] = f.readInteger(1);
+		list3[i] = [
+			i,
+			f.readInteger(1),
+			f.readInteger(1)
+		];
 	}
+	planUtils.exportTSV(outputFile, '3', list3, 'betr3Id,unknown1,unknown2');
 	
-	var data4 = [];
+	var list4 = [];
 	for (var i = 0; i < header.listLength4; i++) {
-		data4[i] = [];
-		data4[i][0] = f.readInteger(4);
-		data4[i][1] = f.readInteger(2);
-		data4[i][2] = f.readBinDump(4);
+		list4[i] = [
+			i,
+			f.readInteger(4),
+			f.readInteger(2),
+			f.readBinDump(4)
+		];
 	}
+	planUtils.exportTSV(outputFile, '4', list4, 'betr4Id,unknown1,unknown2,unknown3');
 	
 	header.bytesLeft = f.check(outputFile);
 	
 	planUtils.exportHeader(outputFile, header);
-	planUtils.exportTSV(outputFile, '1', data1);
-	planUtils.exportTSV(outputFile, '2', data2);
-	planUtils.exportTSV(outputFile, '3', data3);
-	planUtils.exportTSV(outputFile, '4', data4);
 	
 	var json1 = [];
-	for (var i = 0; i < data1.length; i++) {
+	for (var i = 0; i < list1.length; i++) {
 		json1.push({
-			id: i,
-			nameType: data1[i][0],
-			nameShort: data1[i][1],
-			nameLong: data1[i][2]
+			betr1Id: i,
+			nameType: list1[i][1],
+			nameShort: list1[i][2],
+			nameLong: list1[i][3]
 		});
 	}
-	planUtils.exportJSON(outputFile, 'data1', json1);
+	planUtils.exportJSON(outputFile, 'list1', json1);
 
 	var json2 = [];
-	for (var i = 0; i < data2.length; i++) {
+	for (var i = 0; i < list2.length; i++) {
 		json2.push({
-			id: i,
-			betr1Id: data2[i][1],
-			unknown: data2[i][0]
+			betr2Id: i,
+			betr1Id: list2[i][2],
+			unknown: list2[i][1]
 		});
 	}
-	planUtils.exportJSON(outputFile, 'data2', json2);
+	planUtils.exportJSON(outputFile, 'list2', json2);
 
 	var json3 = [];
-	for (var i = 0; i < data3.length; i++) {
+	for (var i = 0; i < list3.length; i++) {
 		json3.push({
-			id: i,
-			betr2Id: data3[i][0],
-			unknown: data3[i][1]
+			zugId: i,
+			betr2Id: list3[i][1],
+			unknown: list3[i][2]
 		});
 	}
-	planUtils.exportJSON(outputFile, 'data3', json3);
+	planUtils.exportJSON(outputFile, 'list3', json3);
 }
-
-exports.decodePlan = decodePlanBETR;

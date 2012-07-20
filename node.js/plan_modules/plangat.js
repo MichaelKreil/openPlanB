@@ -2,7 +2,7 @@ var planUtils = require('./plan_utils.js');
 
 // GAT = Gattung?
 
-function decodePlanGAT(filename, outputFile) {
+exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
 
 	var f = new planUtils.PlanFile(filename);
@@ -27,6 +27,7 @@ function decodePlanGAT(filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = [
+			i,
 			f.readString(4).replace(/\x00/g, ''), // Short name
 			f.readInteger(2),                     // Length of short name
 			f.readString(8).replace(/\x00/g, ''), // Long name
@@ -37,11 +38,12 @@ function decodePlanGAT(filename, outputFile) {
 			f.readBinDump(12)                     // Binary code of cols in list 2
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'gat1Id,shortname,shortnamelen,longname,unknown1,unknown2,unknown3,unknown4,unknown5');
 
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
 		list2[i] = [
+			i,
 			f.readString(1),
 			f.readInteger(1)
 		];
@@ -49,19 +51,23 @@ function decodePlanGAT(filename, outputFile) {
 			list2[i].push(f.readInteger(4));	
 		}
 	}
-	planUtils.exportTSV(outputFile, '2', list2);
+	var t = ['gat2Id','lang','unknown'];
+	for (var j = 0; j < 153; j++) t.push('unknown'+j);
+	planUtils.exportTSV(outputFile, '2', list2, t.join(','));
 
 	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
 		list3[i] = [
+			i,
 			f.readNullString()
 		];
 	}
-	planUtils.exportTSV(outputFile, '3', list3);
+	planUtils.exportTSV(outputFile, '3', list3, 'gat3Id,text');
 	
 	var list4 = [];
 	if (header.listSize4 > 0) list4 = f.readString(header.listSize4).split('\x00');
-	planUtils.exportTSV(outputFile, '4', list4);
+	for (var i = 0; i < list4.length; i++) list4[i] = [i, list4[i]];
+	planUtils.exportTSV(outputFile, '4', list4, 'id,unknown');
 
 	header.bytesLeft = f.check(outputFile);
 
@@ -71,17 +77,17 @@ function decodePlanGAT(filename, outputFile) {
 	for (var i = 0; i < list1.length; ++i) {
 		var obj = {
 			gatId: i,
-			nameShort: list1[i][0],
-			nameLong: list1[i][2].trim(),
+			nameShort: list1[i][1],
+			nameLong: list1[i][3].trim(),
 			type: []
 			// TODO: unknown values omitted
 		};
-		var typeId = list1[i][4];
+		var typeId = list1[i][5];
 		var typeObj = {};
 		for (var k = 0; k < list2.length; k++) {
-			var language = list2[k][0];
-			var id3 = list2[k][typeId + 2];
-			var word = list3[id3][0];
+			var language = list2[k][1];
+			var id3 = list2[k][typeId + 3];
+			var word = list3[id3][1];
 			typeObj[language] = word;
 		}
 		obj.type.push(typeObj);
@@ -89,6 +95,3 @@ function decodePlanGAT(filename, outputFile) {
 	}
 	planUtils.exportJSON(outputFile, 'data1', data);
 }
-
-
-exports.decodePlan = decodePlanGAT;

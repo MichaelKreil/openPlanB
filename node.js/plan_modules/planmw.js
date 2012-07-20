@@ -23,10 +23,11 @@ exports.decodePlan = function(filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = [
+			i,
 			f.readInteger(2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'mwId,unknown1');
 	
 	header.bytesLeft = f.check(outputFile);
 	
