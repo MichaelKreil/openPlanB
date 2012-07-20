@@ -44,7 +44,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'b1Id,unknown1,unknown2,unknown3,unknown4,unknown5');
+	planUtils.exportTSV(outputFile, '1', list1, 'b1_id,unknown1,unknown2,unknown3,unknown4,unknown5');
 	
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
@@ -59,8 +59,12 @@ exports.decodePlan = function (filename, outputFile) {
 		f.pos = pos0 + list2[i][2]; 
 		list2[i][2] = f.readNullString();
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'id,unknown1,unknown2');
+	planUtils.exportTSV(outputFile, '2', list2, 'b2_id,b1_ref?,unknown2');
+	
+	
+	
 	header.bytesLeft = f.check(outputFile);
+	planUtils.exportHeader(outputFile, header);
 	
 	
 	
@@ -89,7 +93,5 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	
 	// Alles exportieren
-	
-	planUtils.exportHeader(outputFile, header);
 	planUtils.exportJSON(outputFile, 'data', data);
 }

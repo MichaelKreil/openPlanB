@@ -45,7 +45,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(2)  // Id des ersten Eintrages in Liste 2
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'uk1Id,length,offset');
+	planUtils.exportTSV(outputFile, '1', list1, 'uk1_id,length,offset');
 	
 	
 	
@@ -58,7 +58,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(header.list2Block3Size) // Id eines Eintrages in Liste 3
 		];
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'uk2Id,begin,end,length');
+	planUtils.exportTSV(outputFile, '2', list2, 'uk2_id,begin,end,uk3_ref');
 	
 	
 	
@@ -69,7 +69,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(-2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '3', list3, 'uk3Id,unknown1');
+	planUtils.exportTSV(outputFile, '3', list3, 'uk3_id,unknown1');
 	
 	
 	
@@ -83,7 +83,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(2)  // irgendwas zwischen 0 und 99
 		];
 	}
-	planUtils.exportTSV(outputFile, '4', list4, 'uk4Id,unknown1,unknown2,unknown3,unknown4');
+	planUtils.exportTSV(outputFile, '4', list4, 'uk4_id,unknown1,unknown2,unknown3,unknown4');
 
 
 

@@ -43,7 +43,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readString(2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'atx1Id,unknown1,unknown2,unknown3');
+	planUtils.exportTSV(outputFile, '1', list1, 'atx1_id,unknown1,unknown2,unknown3');
 	
 	
 	
@@ -82,7 +82,7 @@ exports.decodePlan = function (filename, outputFile) {
 		}
 		list2[i][5] = list2Helper[list2[i][5]];
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'atx2Id,unknown1,unknown2,unknown3,unknown4,unknown5');
+	planUtils.exportTSV(outputFile, '2', list2, 'atx2_id,unknown1,unknown2,unknown3,unknown4,unknown5');
 	
 	
 	
@@ -121,7 +121,7 @@ exports.decodePlan = function (filename, outputFile) {
 		}
 		list3[i][4] = list3Helper[list3[i][4]];
 	}
-	planUtils.exportTSV(outputFile, '3', list3,'atx3Id,unknown1,unknown2,unknown3,unknown4');
+	planUtils.exportTSV(outputFile, '3', list3,'atx3_id,unknown1,unknown2,unknown3,unknown4');
 	
 	
 	

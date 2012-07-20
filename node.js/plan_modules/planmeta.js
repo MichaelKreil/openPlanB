@@ -34,7 +34,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(1)
 		]
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'meta1Id,unknown1,unknown2,hex1,hex2,hex3,hex4,hex5,hex6,hex7,hex8');
+	planUtils.exportTSV(outputFile, '1', list1, 'meta1_id,unknown1,unknown2,hex1,hex2,hex3,hex4,hex5,hex6,hex7,hex8');
 	
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
@@ -43,7 +43,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(-4)
 		]
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'meta1Id,unknown1');
+	planUtils.exportTSV(outputFile, '2', list2, 'b1_ref?,unknown1');
 	
 	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
@@ -54,7 +54,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(1),
 		]
 	}
-	planUtils.exportTSV(outputFile, '3', list3, 'meta3Id,unknown1,unknown2,unknown3');
+	planUtils.exportTSV(outputFile, '3', list3, 'meta3_id,b1_ref?,unknown2,unknown3');
 	
 	header.bytesLeft = f.check(outputFile);
 	

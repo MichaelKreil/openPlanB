@@ -31,7 +31,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readNullString()
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'betr1Id,short,middle,long');
+	planUtils.exportTSV(outputFile, '1', list1, 'betr1_id,short,middle,long');
 	
 	
 	var list2 = [];
@@ -44,7 +44,7 @@ exports.decodePlan = function (filename, outputFile) {
 	for (var i = 0; i < header.listLength2; i++) {
 		list2[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'betr2Id,short,betr1Id');
+	planUtils.exportTSV(outputFile, '2', list2, 'betr2_id,short,betr1_ref');
 	
 	
 	var list3 = [];
@@ -55,7 +55,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(1)
 		];
 	}
-	planUtils.exportTSV(outputFile, '3', list3, 'betr3Id,unknown1,unknown2');
+	planUtils.exportTSV(outputFile, '3', list3, 'zug1_ref,betr2_ref,unknown2');
 	
 	var list4 = [];
 	for (var i = 0; i < header.listLength4; i++) {
@@ -66,7 +66,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readBinDump(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '4', list4, 'betr4Id,unknown1,unknown2,unknown3');
+	planUtils.exportTSV(outputFile, '4', list4, 'betr4_id,zug1_ref?,unknown2,unknown3');
 	
 	header.bytesLeft = f.check(outputFile);
 	

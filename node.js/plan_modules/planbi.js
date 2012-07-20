@@ -27,7 +27,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'bi1Id,unknown1,unknown2');
+	planUtils.exportTSV(outputFile, '1', list1, 'bi1_id,unknown1,unknown2');
 	
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
@@ -36,7 +36,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readBinDump(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'bi1Id,unknown1');
+	planUtils.exportTSV(outputFile, '2', list2, 'bi2_id,unknown1');
 	
 	header.bytesLeft = f.check(outputFile);
 	

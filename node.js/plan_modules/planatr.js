@@ -69,7 +69,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// last stop on route for which this information (number, type) is valid
 		list1[i].push(f.readInteger(1));
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'atr1Id,unknown1,unknown2,unknown3,unknown4,unknown5');
+	planUtils.exportTSV(outputFile, '1', list1, 'atr1_id,unknown1,unknown2,unknown3,unknown4,unknown5');
 
 
 
@@ -101,19 +101,25 @@ exports.decodePlan = function (filename, outputFile) {
 		else
 			list2[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'atr2Id,unknown1,unknown2,unknown3,unknown4');
+	planUtils.exportTSV(outputFile, '2', list2, 'atr2_id,unknown1,unknown2,unknown3,w1_ref');
 	
 	
 	
 	var list3 = [];
 	for (var i = 0; i < header.listLength3; i++) {
 		// UNKNOWN
-		list3[i] = [
-			i,
-			f.readHexDump(list3BlockSize)
-		];
+		list3[i] = [i];
+		if (list3BlockSize == 4) {
+			list3[i].push(f.readInteger(2));
+			list3[i].push(f.readInteger(2));
+		} else if (list3BlockSize == 6) {
+			list3[i].push(f.readInteger(4));
+			list3[i].push(f.readInteger(2));
+		} else {
+			console.log('ERROR: unknown list3BlockSize:'+list3BlockSize);
+		}
 	}
-	planUtils.exportTSV(outputFile, '3', list3, 'atr3Id,unknown1,unknown2');
+	planUtils.exportTSV(outputFile, '3', list3, 'atr3_id,unknown1,unknown2');
 	
 	
 	
@@ -134,7 +140,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// last stop on route for which this information is valid
 		list4[i].push(f.readInteger(1));
 	}
-	planUtils.exportTSV(outputFile, '4', list4, 'atr4Id,unknown1,unknown2,unknown3');
+	planUtils.exportTSV(outputFile, '4', list4, 'atr4_id,unknown1,unknown2,unknown3');
 	
 	
 	
@@ -151,7 +157,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// stop on route after border crossing
 		list5[i].push(f.readInteger(1));
 	}
-	planUtils.exportTSV(outputFile, '5', list5, 'atr5Id,unknown1,unknown2,unknown3');
+	planUtils.exportTSV(outputFile, '5', list5, 'atr5_id,unknown1,unknown2,unknown3');
 	
 	
 	

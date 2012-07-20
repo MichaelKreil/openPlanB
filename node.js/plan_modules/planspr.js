@@ -27,7 +27,7 @@ exports.decodePlan = function(filename, outputFile) {
 			f.readInteger(2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'sprId,unknown1,unknown2,unknown3,unknown4');
+	planUtils.exportTSV(outputFile, '1', list1, 'spr1_id,zug1_ref?,unknown2,zug1_ref?,unknown4');
 	
 	header.bytesLeft = f.check(outputFile);
 	

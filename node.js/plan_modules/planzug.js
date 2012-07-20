@@ -89,7 +89,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// TODO: don't know when which interpretation of value holds
 		list1[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'zugId,iterations,interval,wId?,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6,unknown7,unknown8,unknown9');
+	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,iterations,interval,w1_ref?,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6,lauf1_ref?,unknown8,atr5_ref?');
 	
 	
 	

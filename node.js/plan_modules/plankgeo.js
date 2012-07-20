@@ -36,7 +36,7 @@ exports.decodePlan = function (filename, outputFile) {
 	for (var i = 0; i < header.listLength1; i++)	list1[i].push(f.readInteger(-2));
 	for (var i = 0; i < header.listLength1; i++)	list1[i].push(f.readInteger(-2));
 	
-	planUtils.exportTSV(outputFile, '1', list1, 'kgeoId,lon1,lat1,lon2,lat2');
+	planUtils.exportTSV(outputFile, '1', list1, 'b1_ref,lon1,lat1,lon2,lat2');
 	
 	header.bytesLeft = f.check(outputFile);
 	

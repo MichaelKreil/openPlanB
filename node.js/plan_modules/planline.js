@@ -43,7 +43,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// name of line
 		list1[i][3] = f.readString(nameLength).replace(/\x00/g, '');
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'lineIndex,lineId,unknown1,lineName');
+	planUtils.exportTSV(outputFile, '1', list1, 'line1_id,lineKey,unknown1,lineName');
 	
 	header.bytesLeft = f.check(outputFile);
 	

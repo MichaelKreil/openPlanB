@@ -27,22 +27,28 @@ exports.decodePlan = function(filename, outputFile) {
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
 		list1[i] = [
+			i,
 			f.readBinDump(2),
 			f.readInteger(2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1);
+	planUtils.exportTSV(outputFile, '1', list1, 'zz1_id,unknown1,unknown2');
 	
 	
 	
 	// Decoding List 2
 	
 	var list2 = [];
-	for (var i = 0; i < header.listLength2; i++) list2[i] = [f.readBinDump(4)];
+	for (var i = 0; i < header.listLength2; i++) {
+		list2[i] = [
+			i,
+			f.readBinDump(4)
+		];
+	}
 	for (var i = 0; i < header.listLength2; i++) {
 		list2[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '2', list2);
+	planUtils.exportTSV(outputFile, '2', list2, 'zz2_id,unknown1,unknown2');
 	
 	
 	

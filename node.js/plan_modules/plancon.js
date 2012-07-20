@@ -43,7 +43,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'con1Id,unknown1,unknown2,unknown3,unknown4');
+	planUtils.exportTSV(outputFile, '1', list1, 'con1_id,unknown1,unknown2,unknown3,unknown4');
 	
 	
 	
@@ -56,7 +56,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'con2Id,unknown');
+	planUtils.exportTSV(outputFile, '2', list2, 'b1_ref?,con1_ref?');
 	
 	
 	
@@ -69,7 +69,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '3', list3, 'con3Id,unknown');
+	planUtils.exportTSV(outputFile, '3', list3, 'con3_id,unknown');
 	
 	
 	
@@ -85,7 +85,7 @@ exports.decodePlan = function (filename, outputFile) {
 			]);
 		}
 	}
-	planUtils.exportTSV(outputFile, '4', list4, 'con4Id,unknown1,unknown2');
+	planUtils.exportTSV(outputFile, '4', list4, 'con4_id,unknown1,unknown2');
 	
 	
 	
@@ -99,7 +99,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(2)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '5', list5, 'con5Id,unknown1,unknown2');
+	planUtils.exportTSV(outputFile, '5', list5, 'con5_id,unknown1,unknown2');
 	
 	
 	

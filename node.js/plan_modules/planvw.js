@@ -34,7 +34,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(1)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'vw1Id,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6');
+	planUtils.exportTSV(outputFile, '1', list1, 'vw1_id,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6');
 	
 	
 	
@@ -50,7 +50,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'vw2Id,unknown1,unknown2,unknown3,unknown4,unknown5,unknown6');
+	planUtils.exportTSV(outputFile, '2', list2, 'vw2_id,zug1_ref?,unknown2,unknown3,unknown4,unknown5,vw1_ref');
 	
 	
 	

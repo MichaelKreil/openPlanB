@@ -46,7 +46,7 @@ exports.decodePlan = function(filename, outputFile) {
 			list1[i].push(f.readNullString());  // name of direction
 		}
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'richId,startPosition,unknown1,someId,someDirection');
+	planUtils.exportTSV(outputFile, '1', list1, 'rich1_id,startPosition,unknown1,someKey,someDirection');
 	
 	
 	

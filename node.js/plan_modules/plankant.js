@@ -30,7 +30,7 @@ exports.decodePlan = function (filename, outputFile) {
 		 	f.readInteger(4)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'kant1Id,offset');
+	planUtils.exportTSV(outputFile, '1', list1, 'b1_ref?,kant2_offset');
 
 	var id = 0;
 	for (var i = 0; i < header.listLength2; i++) {
@@ -45,7 +45,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readHexDump(1)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'kant2Id,kant1Id,bahnhofId,unknown1,unknown2,dauer,unknown4');
+	planUtils.exportTSV(outputFile, '2', list2, 'kant2_id,b1_ref?,b1_ref?,unknown1,unknown2,dauer,unknown4');
 
 	header.bytesLeft = f.check(outputFile);
 	

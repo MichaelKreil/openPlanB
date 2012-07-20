@@ -53,7 +53,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'ng1Id,unknown1,unknown2,unknown3,unknown4');
+	planUtils.exportTSV(outputFile, '1', list1, 'ng1_id,unknown1,unknown2,unknown3,ng2_offset');
 	
 	
 	list1.push([0,0,0,f.length]);
@@ -61,17 +61,15 @@ exports.decodePlan = function (filename, outputFile) {
 	var
 		list2 = [];
 		i = 0,
+		id = 0,
 		p0 = f.pos;
 	
 	while (f.pos < f.length) {
-		if (f.pos-p0 >= list1[i+1][4]) {
-			i++;
-			list2.push([i, f.readInteger(1)]);
-		} else {
-			list2.push([i, f.readInteger(1)]);
-		}
+		while (f.pos-p0 >= list1[i+1][4]) i++;
+		list2.push([id, i, f.readInteger(1)]);
+		id++;
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'ng1Id,value');
+	planUtils.exportTSV(outputFile, '2', list2, 'ng2_id,ng1_ref,value');
 	
 	list1.pop();
 	

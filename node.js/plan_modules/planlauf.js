@@ -23,7 +23,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		]); 
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'index,offset');
+	planUtils.exportTSV(outputFile, '1', list1, 'lauf1_id,offset');
 	list1.push([f.length]);
 	
 	var list2 = [];
@@ -33,7 +33,7 @@ exports.decodePlan = function (filename, outputFile) {
 		list2.push([i, id, f.readInteger(4)]);
 		i++
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'index,laufId,stop');
+	planUtils.exportTSV(outputFile, '2', list2, 'lauf2_id,lauf1_ref,b1_ref?');
 	
 	list1.pop();
 

@@ -15,7 +15,7 @@ exports.decodePlan = function(filename, outputFile) {
 			list1[i]
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'listId,datum');
+	planUtils.exportTSV(outputFile, '1', list1, 'holi_id,datum');
 	
 	header.bytesLeft = f.check(outputFile);
 	

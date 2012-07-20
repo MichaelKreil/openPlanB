@@ -43,7 +43,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'itxt1Id,unknown1,unknown2,unknown3');
+	planUtils.exportTSV(outputFile, '1', list1, 'itxt1_id,zug1_ref?,unknown2,itxt2_offset');
 	
 	
 	
@@ -58,7 +58,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'itxt2Id,unknown1,unknown2,unknown3,unknown4,unknown5');
+	planUtils.exportTSV(outputFile, '2', list2, 'itxt2_id,unknown1,unknown2,unknown3,unknown4,unknown5');
 	
 	
 	
@@ -70,7 +70,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '3', list3, 'itxt3Id,unknown1,unknown2');
+	planUtils.exportTSV(outputFile, '3', list3, 'itxt3_id,b1_ref?,itxt4_ref?');
 	
 	
 	
@@ -85,7 +85,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		];
 	}
-	planUtils.exportTSV(outputFile, '4', list4, 'itxt4Id,unknown1,unknown2,unknown3,unknown4,unknown5');
+	planUtils.exportTSV(outputFile, '4', list4, 'itxt4_id,unknown1,unknown2,unknown3,unknown4,itxt5offset_ref');
 	
 	
 	
@@ -100,7 +100,7 @@ exports.decodePlan = function (filename, outputFile) {
 		]);
 		i++
 	}
-	planUtils.exportTSV(outputFile, '5', list5, 'itxt4Id,offset,unknown1');
+	planUtils.exportTSV(outputFile, '5', list5, 'itxt5_id,itxt5offset_id,unknown1');
 	
 	
 	header.bytesLeft = f.check(outputFile);

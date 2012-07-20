@@ -48,14 +48,16 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(4)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'gls1Id,offset,unknown1,unknown2');
+	planUtils.exportTSV(outputFile, '1', list1, 'gls1_id,zug1_ref?,unknown1,unknown2');
 	
+	
+	var id = 0;
 	for (var i = 0; i < header.listLength1; i++) {
 		var n = f.readInteger(integerByteCount);
 		for (var j = 0; j < n; j++) {
 			list2.push([
+				id,
 				i,
-				j,
 				
 				// stop on route for which this platform information holds
 				// number 0 corresponds to the first entry of the LAUF route
@@ -67,9 +69,10 @@ exports.decodePlan = function (filename, outputFile) {
 				// position in GLS list 3
 				f.readInteger(integerByteCount)
 			]);
+			id++;
 		}
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'gls1Id,gls2Id,unknown1,unknown2,gls3Id');
+	planUtils.exportTSV(outputFile, '2', list2, 'gls2_id,gls1_ref,unknown1,unknown2,gls3_ref');
 	
 	for (var i = 0; i < header.listLength3; i++) {
 		list3.push([
@@ -82,7 +85,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(integerByteCount)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '3', list3, 'gls3Id,gls4Id,unknown');
+	planUtils.exportTSV(outputFile, '3', list3, 'gls3_id,gls4_ref,unknown');
 	
 	for (var i = 0; i < header.listLength4; i++) {
 		// name of platform
@@ -91,7 +94,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readString(8)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '4', list4, 'gls4Id,text');
+	planUtils.exportTSV(outputFile, '4', list4, 'gls4_id,text');
 	
 	header.bytesLeft = f.check(outputFile);
 	

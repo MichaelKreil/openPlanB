@@ -38,7 +38,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readBinDump(12)                     // Binary code of cols in list 2
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'gat1Id,shortname,shortnamelen,longname,unknown1,unknown2,unknown3,unknown4,unknown5');
+	planUtils.exportTSV(outputFile, '1', list1, 'gat1_id,shortname,shortnamelen,longname,unknown1,unknown2,unknown3,unknown4,unknown5');
 
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
@@ -51,7 +51,7 @@ exports.decodePlan = function (filename, outputFile) {
 			list2[i].push(f.readInteger(4));	
 		}
 	}
-	var t = ['gat2Id','lang','unknown'];
+	var t = ['gat2_id','lang','unknown'];
 	for (var j = 0; j < 153; j++) t.push('unknown'+j);
 	planUtils.exportTSV(outputFile, '2', list2, t.join(','));
 
@@ -62,12 +62,12 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readNullString()
 		];
 	}
-	planUtils.exportTSV(outputFile, '3', list3, 'gat3Id,text');
+	planUtils.exportTSV(outputFile, '3', list3, 'gat3_id,text');
 	
 	var list4 = [];
 	if (header.listSize4 > 0) list4 = f.readString(header.listSize4).split('\x00');
 	for (var i = 0; i < list4.length; i++) list4[i] = [i, list4[i]];
-	planUtils.exportTSV(outputFile, '4', list4, 'id,unknown');
+	planUtils.exportTSV(outputFile, '4', list4, 'gat4_id,unknown');
 
 	header.bytesLeft = f.check(outputFile);
 

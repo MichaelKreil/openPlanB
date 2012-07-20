@@ -34,7 +34,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(2)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'bz1Id,offset,unknown');
+	planUtils.exportTSV(outputFile, '1', list1, 'b1_ref?,offset,unknown');
 	
 	
 	
@@ -44,6 +44,7 @@ exports.decodePlan = function (filename, outputFile) {
 	list1.push([-1,f.length]);
 	
 	var list2 = [];
+	var id = 0;
 	for (var i = 0; i < list1.length - 1; ++i) {
 		list2;
 		
@@ -69,14 +70,16 @@ exports.decodePlan = function (filename, outputFile) {
 		for (var j = 0; j < timeList.length; j++) {
 			var time = timeList[j];
 			time.unshift(i);
-			list2.push(time);	
+			time.unshift(id);
+			list2.push(time);
+			id++;
 		}
 		
 	}
 	// remove dummy entry
 	list1.pop();
 	
-	planUtils.exportTSV(outputFile, '2', list2, 'bzId1,trainId,arrTime,depTime');
+	planUtils.exportTSV(outputFile, '2', list2, 'bz2_id,b1_ref?,zug1_ref,arrTime,depTime');
 	
 	
 	

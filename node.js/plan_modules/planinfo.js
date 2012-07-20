@@ -25,7 +25,7 @@ exports.decodePlan = function(filename, outputFile) {
 			f.readInteger(2)
 		]);
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'info1Id,unknown1,unknown2,unknown3');
+	planUtils.exportTSV(outputFile, '1', list1, 'info1_id,unknown1,unknown2,unknown3');
 	
 	var list2 = [];
 	var p0 = f.pos;
@@ -37,7 +37,7 @@ exports.decodePlan = function(filename, outputFile) {
 			f.readNullString()
 		]);
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'info2Id,offset,unknown1');
+	planUtils.exportTSV(outputFile, '2', list2, 'info2_id,offset,unknown1');
 	
 	header.bytesLeft = f.check(outputFile);
 	

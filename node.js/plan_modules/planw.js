@@ -50,7 +50,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readInteger(header.blockSize1)
 		];
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'w1Id,w2Id');
+	planUtils.exportTSV(outputFile, '1', list1, 'w1_id,w2_ref');
 	
 	
 	
@@ -61,7 +61,7 @@ exports.decodePlan = function (filename, outputFile) {
 			f.readBinDump(header.blockSize2, true)
 		];
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'w2Id,unknown1');
+	planUtils.exportTSV(outputFile, '2', list2, 'w2_id,unknown1');
 	
 	
 	

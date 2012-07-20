@@ -36,7 +36,7 @@ exports.decodePlan = function(filename, outputFile) {
 		}
 	}
 	
-	planUtils.exportTSV(outputFile, '1', list1, 'kmId,unknown1,unknown2,unknown3,unknown4');
+	planUtils.exportTSV(outputFile, '1', list1, 'b1_ref?,unknown1,unknown2,unknown3,unknown4');
 	
 	header.bytesLeft = f.check(outputFile);
 	
