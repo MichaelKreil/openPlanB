@@ -44,21 +44,25 @@ exports.decodePlan = function (filename, outputFile) {
 
 	
 	for (var i = 0; i < header.listLength1; i++) {
+		// FIELD 'wId'
 		// days of operation for this train
-		// offset in W list 1, or zero (train operates every day)
-		// TODO: don't know when which interpretation of value holds
+		// offset in W list 1, or zero (train operates every day), or offset in ATR list 3
+		//   (cf. bitset below)
 		if (header.blockSize == 12)
 			list1[i].push(f.readInteger(4));
 		else
 			list1[i].push(f.readInteger(2));
 		
-		// UNKNOWN
 		// probably a reference to an offset in UK list 1
 		list1[i].push(f.readInteger(2));
 		
 		bitset = f.readInteger(2);
-		// UNKNOWN
-		list1[i].push(bitset & 0x0ff);
+		// if > 1, then contains number of consecutive entries in ATR list 1
+		//           (cf. field 'trainNumber')
+		list1[i].push((bitset & 0x0e0) >> 5);
+		// if > 1, then contains number of consecutive entries in ATR list 3
+		//           (cf. field 'wId')
+		list1[i].push(bitset & 0x01f);
 		// == 0:  no direction information
 		// == 1:  look up field 'richId' in RICH list 1
 		// == 2:  look up field 'richId' in ATR list 4
@@ -75,6 +79,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// UNKNOWN
 		list1[i].push((bitset & 0xe000) >> 13);
 		
+		// FIELD 'trainNumber'
 		//     train number 
 		// OR  offset in ATR, list 1
 		// OR  id in LINE
@@ -113,7 +118,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// (cf. bitset above)
 		list1[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,freqIterations,freqInterval,w1_ref?,unknown1,unknown2,dirFlags,unknown3,borderFlags,unknown4,trainNumber,trainType,trainNumberFlags,atr2_ref,atr2Flags,lauf1_ref?,rich1_ref?,atr5_ref?');	
+	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,freqIterations,freqInterval,w1_ref?,uk1_ref?,atr1Flags,wFlags,dirFlags,unknown3,borderFlags,unknown4,trainNumber,trainType,trainNumberFlags,atr2_ref,atr2Flags,lauf1_ref?,rich1_ref?,atr5_ref?');	
 	
 	
 	header.bytesLeft = f.check(outputFile);
@@ -133,26 +138,28 @@ exports.decodePlan = function (filename, outputFile) {
 			wId: list1[i][3],
 			
 			unknown1: list1[i][4],
-			unknown2: list1[i][5],
 			
-			directionFlags: list1[i][6],
+			atr1Flags: list1[i][5],
+			wFlags: list1[i][6],
 			
-			unknown3: list1[i][7],
+			directionFlags: list1[i][7],
 			
-			borderFlags: list1[i][8],
+			unknown3: list1[i][8],
 			
-			unknown4: list1[i][9],
+			borderFlags: list1[i][9],
 			
-			trainNumber: list1[i][10],
-			trainType: list1[i][11],
-			trainNumberFlags: list1[i][12],
+			unknown4: list1[i][10],
 			
-			atr2Id: list1[i][13],
-			atr2Flags: list1[i][14],
+			trainNumber: list1[i][11],
+			trainType: list1[i][12],
+			trainNumberFlags: list1[i][13],
 			
-			laufId: list1[i][15],
-			richId: list1[i][16],
-			atr5Id: list1[i][17]
+			atr2Id: list1[i][14],
+			atr2Flags: list1[i][15],
+			
+			laufId: list1[i][16],
+			richId: list1[i][17],
+			atr5Id: list1[i][18]
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data', data);
