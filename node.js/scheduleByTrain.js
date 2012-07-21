@@ -64,6 +64,8 @@ function scheduleByTrain() {
 			(folder.files['plangat_data1.json']) &&
 			(folder.files['planline_data.json']) &&
 			(folder.files['planatr_data1.json']) &&
+			(folder.files['planatr_data2.json']) &&
+			(folder.files['planatr_data3.json']) &&
 			(folder.files['planatr_data5.json']) &&
 			(folder.files['planbetr_list1.json']) &&
 			(folder.files['planbetr_list2.json']) &&
@@ -79,6 +81,8 @@ function scheduleByTrain() {
 			var trainTypes = hashify(JSON.parse(fs.readFileSync(folder.files['plangat_data1.json'], 'utf8')), 'gatId');
 			var specialLines = hashify(JSON.parse(fs.readFileSync(folder.files['planline_data.json'], 'utf8')), 'lineId');
 			var trainAttributesTrainNumbers = hashify(JSON.parse(fs.readFileSync(folder.files['planatr_data1.json'], 'utf8')));
+			var trainAttributesProperties = hashify(JSON.parse(fs.readFileSync(folder.files['planatr_data2.json'], 'utf8')));
+			var trainAttributesDaysValid = hashify(JSON.parse(fs.readFileSync(folder.files['planatr_data3.json'], 'utf8')));
 			var trainAttributesBorderCrossings = hashify(JSON.parse(fs.readFileSync(folder.files['planatr_data5.json'], 'utf8')));
 			var trainOperatorsList1 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_list1.json'], 'utf8')), 'betr1Id');
 			var trainOperatorsList2 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_list2.json'], 'utf8')), 'betr2Id');
@@ -203,17 +207,27 @@ function scheduleByTrain() {
 					output.push("freq " + train.frequency.iterations + "@" + train.frequency.interval + "m");
 				}
 				
-				/*
-				var validDay = 0;
-				if (train.wId != 0) {
-					validDay = findOneValidDay(daysValidBitsets[ train.wId  ].days);
+				if (train.atr2Flags == 0xff) {
+					output.push( String.fromCharCode(train.atr2Id >> 8) + String.fromCharCode(train.atr2Id & 0xff));
+				} else {
+					var props = [];
+					for (var i = 0; i < train.atr2Flags; ++i) {
+						props.push(trainAttributesProperties[ train.atr2Id + i ].property);
+					}
+					output.push(props.join(','));
 				}
-				if (validDay)
-					output.push(validDay.toLocaleDateString());
-				else
-					output.push('every day');
-				*/
-				if (train.wId != 0) {
+				
+				if (train.wFlags > 1) {
+					// TODO: support multiple validity periods
+					var firstWId = trainAttributesDaysValid[ train.wId ].wId;
+					var wString = '';
+					if (firstWId)
+						wString = prettyW(validityBegin, daysValidBitsets[ firstWId ].days);
+					else
+						wString = 'everyday';
+					wString += '/' + stations[ route.stops[ trainAttributesDaysValid[ train.wId ].lastStop ] ].name;
+					output.push( wString );
+				} else if (train.wId != 0) {
 					output.push( prettyW(validityBegin, daysValidBitsets[ train.wId ].days) );
 				}
 				
@@ -285,6 +299,7 @@ function prettyW(validityBegin, bitset) {
 		'Mo-Fr': '0lllll0',
 		'Mo-Sa': '0llllll',
 		'Sa-So': 'l00000l',
+		'Fr,Sa': '00000ll',
 		'Sa':    '000000l',
 		'So':    'l000000',
 		'all':   'lllllll',
