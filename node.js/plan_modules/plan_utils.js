@@ -153,7 +153,6 @@ exports.PlanFile = function(filename) {
 	return me;
 }
 
-
 function validityToDate(d) {
 	// validity is given as the number of days since Dec 31, 1979
 	var start = new Date(1979,11,31);

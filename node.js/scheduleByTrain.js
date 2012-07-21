@@ -40,10 +40,11 @@ function scan(fol) {
 	}
 }
 
-function hashify(arr) {
+function hashify(arr, key) {
+	key = key || 'id';
 	var obj = {};
 	for (var i = 0; i < arr.length; ++i) {
-		obj[arr[i].id] = arr[i];
+		obj[arr[i][key]] = arr[i];
 	}
 	return obj;
 }
@@ -64,9 +65,9 @@ function scheduleByTrain() {
 			(folder.files['planline_data.json']) &&
 			(folder.files['planatr_data1.json']) &&
 			(folder.files['planatr_data5.json']) &&
-			(folder.files['planbetr_data1.json']) &&
-			(folder.files['planbetr_data2.json']) &&
-			(folder.files['planbetr_data3.json']) &&
+			(folder.files['planbetr_list1.json']) &&
+			(folder.files['planbetr_list2.json']) &&
+			(folder.files['planbetr_list3.json']) &&
 			(folder.files['planw_data.json']) &&
 			(folder.files['plangrz_data.json'])
 		)
@@ -74,17 +75,29 @@ function scheduleByTrain() {
 			var trainsHeader = JSON.parse(fs.readFileSync(folder.files['planzug_header.json'], 'utf8'));
 			var trains = JSON.parse(fs.readFileSync(folder.files['planzug_data.json'], 'utf8'));
 			var stations = hashify(JSON.parse(fs.readFileSync(folder.files['planb_data.json'], 'utf8')));
-			var stationSchedules = hashify(JSON.parse(fs.readFileSync(folder.files['planbz_data.json'], 'utf8')));
 			var trainRoutes = hashify(JSON.parse(fs.readFileSync(folder.files['planlauf_data.json'], 'utf8')));
-			var trainTypes = hashify(JSON.parse(fs.readFileSync(folder.files['plangat_data1.json'], 'utf8')));
-			var specialLines = hashify(JSON.parse(fs.readFileSync(folder.files['planline_data.json'], 'utf8')));
+			var trainTypes = hashify(JSON.parse(fs.readFileSync(folder.files['plangat_data1.json'], 'utf8')), 'gatId');
+			var specialLines = hashify(JSON.parse(fs.readFileSync(folder.files['planline_data.json'], 'utf8')), 'lineId');
 			var trainAttributesTrainNumbers = hashify(JSON.parse(fs.readFileSync(folder.files['planatr_data1.json'], 'utf8')));
 			var trainAttributesBorderCrossings = hashify(JSON.parse(fs.readFileSync(folder.files['planatr_data5.json'], 'utf8')));
-			var trainOperatorsList1 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_data1.json'], 'utf8')));
-			var trainOperatorsList2 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_data2.json'], 'utf8')));
-			var trainOperatorsList3 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_data3.json'], 'utf8')));
+			var trainOperatorsList1 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_list1.json'], 'utf8')), 'betr1Id');
+			var trainOperatorsList2 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_list2.json'], 'utf8')), 'betr2Id');
+			var trainOperatorsList3 = hashify(JSON.parse(fs.readFileSync(folder.files['planbetr_list3.json'], 'utf8')), 'zugId');
 			var daysValidBitsets = hashify(JSON.parse(fs.readFileSync(folder.files['planw_data.json'], 'utf8')));
 			var borderStations = hashify(JSON.parse(fs.readFileSync(folder.files['plangrz_data.json'], 'utf8')));
+			
+			var schedule = JSON.parse(fs.readFileSync(folder.files['planbz_data.json'], 'utf8'));
+			var stationSchedules = {};
+			for (var i in schedule) {
+				stationSchedules[ schedule[i].bId ] = stationSchedules[ schedule[i].bId ] || [];
+				stationSchedules[ schedule[i].bId ].push({
+					trainId: schedule[i].zugId,
+					arr: schedule[i].arrTime,
+					dep: schedule[i].depTime
+				});
+			}
+			// free memory
+			schedule = [];
 			
 			var validityBegin = new Date(trainsHeader.validityBegin);
 			
@@ -115,23 +128,23 @@ function scheduleByTrain() {
 					continue;
 				}
 				
-				for (var j in stationSchedules[stationBegin.id].times) {
-					if (stationSchedules[stationBegin.id].times[j].trainId == t && stationSchedules[stationBegin.id].times[j].arr == -1) {
-						timeDep = stationSchedules[stationBegin.id].times[j].dep;
+				for (var j in stationSchedules[stationBegin.id]) {
+					if (stationSchedules[stationBegin.id][j].trainId == t && stationSchedules[stationBegin.id][j].arr == -1) {
+						timeDep = stationSchedules[stationBegin.id][j].dep;
 						break;
 					}
 				}
 				
-				for (var j in stationSchedules[stationFirstStop.id].times) {
-					if (stationSchedules[stationFirstStop.id].times[j].trainId == t) {
-						timeFirst = stationSchedules[stationFirstStop.id].times[j].arr;
+				for (var j in stationSchedules[stationFirstStop.id]) {
+					if (stationSchedules[stationFirstStop.id][j].trainId == t) {
+						timeFirst = stationSchedules[stationFirstStop.id][j].arr;
 						break;
 					}
 				}
 				
-				for (var j in stationSchedules[stationEnd.id].times) {
-					if (stationSchedules[stationEnd.id].times[j].trainId == t && stationSchedules[stationEnd.id].times[j].dep == -1) {
-						timeArr = stationSchedules[stationEnd.id].times[j].arr;
+				for (var j in stationSchedules[stationEnd.id]) {
+					if (stationSchedules[stationEnd.id][j].trainId == t && stationSchedules[stationEnd.id][j].dep == -1) {
+						timeArr = stationSchedules[stationEnd.id][j].arr;
 						break;
 					}
 				}
@@ -149,7 +162,7 @@ function scheduleByTrain() {
 					
 					// TODO: is this constant writen in some planfile?
 					if (tempNumber >= 100000) {
-						return specialLines[tempNumber - 0x10000].lineString;
+						return specialLines[tempNumber - 0x10000].lineName;
 					}
 					return tempNumber;
 				};
@@ -205,11 +218,22 @@ function scheduleByTrain() {
 				}
 				
 				
-				// TODO: this check is actually slightly wrong; the id may also be 0
-				//   but it is unclear how the format distinguishes between crossing and no crossing
-				// TODO: support multiple border crossings (cf. multi-attribute problem in ATR list 2)
-				if (train.atr5Id) {
-					output.push('bX@' + borderStations[ trainAttributesBorderCrossings[train.atr5Id].borderId ].name);
+				if (train.borderFlags) {
+					var getBorderName = function(offset) {
+						return borderStations[ trainAttributesBorderCrossings[train.atr5Id + offset].borderId ].name
+					};
+					if (train.borderFlags == 1)
+						output.push('bX@' + getBorderName(0));
+					else if (train.borderFlags == 2)
+						output.push('bX@' + getBorderName(0) + ',' + getBorderName(1));
+					else {
+						var numberOfCrossings = trainAttributesBorderCrossings[train.atr5Id].borderId;
+						var crossings = [];
+						for (var i = 1; i <= numberOfCrossings; ++i) {
+							crossings.push(getBorderName(i));
+						}
+						output.push('bX@' + crossings.join(','));
+					}
 				}
 				
 				schedule.push(output.join('\t'));

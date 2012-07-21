@@ -1,4 +1,5 @@
 var planUtils = require('./plan_utils.js');
+var assert = require('assert');
 
 exports.decodePlan = function (filename, outputFile) {
 	var header = {unknown:[]};
@@ -52,6 +53,12 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	for (var i = 0; i < list2.length; i++) {
 		data[list2[i][1]].stops.push(list2[i][2]);
+	}
+	
+	for (var i = 0; i < data.length; ++i) {
+		// first entry of each list must contain the length of the subsequent list
+		assert.equal(data[i].stops.length, data[i].stops[0] + 1);
+		data[i].stops.shift();
 	}
 	
 	planUtils.exportJSON(outputFile, 'data', data);

@@ -59,16 +59,21 @@ exports.decodePlan = function (filename, outputFile) {
 		bitset = f.readInteger(2);
 		// UNKNOWN
 		list1[i].push(bitset & 0x0ff);
+		// == 0:  no direction information
 		// == 1:  look up field 'richId' in RICH list 1
 		// == 2:  look up field 'richId' in ATR list 4
 		// == 3:  look up field 'richId' in ATR list 4, direction entry there is 'special'
 		list1[i].push((bitset & 0x300) >> 8);
 		// UNKNOWN
 		list1[i].push((bitset & 0x400) >> 10);
-		// look up field 'grzId' in ATR list 5, else there is no border crossing
-		list1[i].push((bitset & 0x800) >> 11);
+		// == 0:    there is no border crossing
+		// == 1,2:  look up this number of consecutive entries in ATR list 5 at offset
+		//             given by field 'grzId'
+		// == 3:    the entry in ATR list 5 at offset given by field 'grzId' contains
+		//             the number of consecutive entries in ATR list 5
+		list1[i].push((bitset & 0x1800) >> 11);
 		// UNKNOWN
-		list1[i].push((bitset & 0xf000) >> 12);
+		list1[i].push((bitset & 0xe000) >> 13);
 		
 		//     train number 
 		// OR  offset in ATR, list 1
@@ -104,7 +109,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// (cf. bitset above)
 		list1[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,freqIterations,freqInterval,w1_ref?,unknown1,unknown2,dirFlags,unknown3,borderFlags,unknown4,trainNumber,trainType,trainNumberFlags,atr2_ref,unknown5,lauf1_ref?,rich1_ref?,grz_ref?');	
+	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,freqIterations,freqInterval,w1_ref?,unknown1,unknown2,dirFlags,unknown3,borderFlags,unknown4,trainNumber,trainType,trainNumberFlags,atr2_ref,unknown5,lauf1_ref?,rich1_ref?,atr5_ref?');	
 	
 	
 	header.bytesLeft = f.check(outputFile);
@@ -144,7 +149,7 @@ exports.decodePlan = function (filename, outputFile) {
 			
 			laufId: list1[i][15],
 			richId: list1[i][16],
-			grzId: list1[i][17]
+			atr5Id: list1[i][17]
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data', data);

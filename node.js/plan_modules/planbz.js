@@ -46,8 +46,6 @@ exports.decodePlan = function (filename, outputFile) {
 	var list2 = [];
 	var id = 0;
 	for (var i = 0; i < list1.length - 1; ++i) {
-		list2;
-		
 		if (list1[i][1] < 0) continue;
 
 		var nextValidI = i+1;
@@ -90,18 +88,17 @@ exports.decodePlan = function (filename, outputFile) {
 	
 
 	// Export JSON
-	/*
 	var data = [];
-	for (var i = 0; i < list1.length; ++i) {
-		var timeList = list2[i];
-		for (var j = 0; j < timeList.length; j++) {
-			var tupel = timeList[j];
-			timeList[j] = {trainId: tupel[0], arr: tupel[1], dep:tupel[2]};
-		}
-		data[i] = { id:i, times:timeList };
+	for (var i = 0; i < list2.length; ++i) {
+		data.push({
+			id: list2[i][0],
+			bId: list2[i][1],
+			zugId: list2[i][2],
+			arrTime: list2[i][3],
+			depTime: list2[i][4]
+		});
 	}
 	planUtils.exportJSON(outputFile, 'data', data);
-	*/
 }
 
 function parseDateWord(dateWord) {

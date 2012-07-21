@@ -56,9 +56,9 @@ exports.decodePlan = function (filename, outputFile) {
 	var json = [];
 	for (var i = 0; i < list2.length; i++) {
 		json.push({
-			id: i,
-			IBNR: list2[i][0],
-			name: list2[i][1]
+			id: list2[i][0],
+			IBNR: list2[i][1],
+			name: list2[i][2]
 		});
 	}
 	planUtils.exportJSON(outputFile, 'data', json);
