@@ -108,7 +108,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// (cf. bitset above)
 		list1[i].push(f.readInteger(2));
 		
-		// FIELD 'richId'
+		// FIELD 'grzId'
 		// border crossing of this train (offset to ATR, list 5, or zero)
 		// (cf. bitset above)
 		list1[i].push(f.readInteger(2));
