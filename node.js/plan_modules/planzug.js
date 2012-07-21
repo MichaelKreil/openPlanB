@@ -90,11 +90,15 @@ exports.decodePlan = function (filename, outputFile) {
 		//
 		list1[i].push(bitset & 0x1ff);
 
+		// FIELD 'atr2Id'
 		// attributes of this train (offset to ATR list 2)
-		list1[i].push(f.readInteger(2));
+		list1[i].push(f.readInteger(3));
 		
-		// UNKNOWN
-		list1[i].push(f.readInteger(2));
+		// number of consecutive attributes in ATR list 2
+		// if == 0xff, then field 'atr2Id' is not an offset, but contains
+		//              two ASCII characters corresponding to the
+		//              only attribute
+		list1[i].push(f.readInteger(1));
 		
 		// route of this train (references a LAUF id)
 		list1[i].push(f.readInteger(4));
@@ -109,7 +113,7 @@ exports.decodePlan = function (filename, outputFile) {
 		// (cf. bitset above)
 		list1[i].push(f.readInteger(2));
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,freqIterations,freqInterval,w1_ref?,unknown1,unknown2,dirFlags,unknown3,borderFlags,unknown4,trainNumber,trainType,trainNumberFlags,atr2_ref,unknown5,lauf1_ref?,rich1_ref?,atr5_ref?');	
+	planUtils.exportTSV(outputFile, '1', list1, 'zug1_id,freqIterations,freqInterval,w1_ref?,unknown1,unknown2,dirFlags,unknown3,borderFlags,unknown4,trainNumber,trainType,trainNumberFlags,atr2_ref,atr2Flags,lauf1_ref?,rich1_ref?,atr5_ref?');	
 	
 	
 	header.bytesLeft = f.check(outputFile);
@@ -144,8 +148,7 @@ exports.decodePlan = function (filename, outputFile) {
 			trainNumberFlags: list1[i][12],
 			
 			atr2Id: list1[i][13],
-			
-			unknown5: list1[i][14],
+			atr2Flags: list1[i][14],
 			
 			laufId: list1[i][15],
 			richId: list1[i][16],
