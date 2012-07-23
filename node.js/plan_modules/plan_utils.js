@@ -174,33 +174,70 @@ exports.exportHeader = function(outputFile, data) {
 exports.exportTSV = function(outputFile, listName, data, header) {
 	var chunkSize = 10000;
 	
-	function getAsTSV(data) {
-		if (Object.prototype.toString.call(data[0]) === '[object Array]') {
-			var a = new Array(data.length);
-			for (var i = 0; i < data.length; i++) {
-				var r = data[i];
-				a[i] = r.join('\t');
-			}
-			return a.join('\n');
-		} else {
-			return data.join('\n');
+	function getArraysAsTSV(data) {
+		var a = new Array(data.length);
+		for (var i = 0; i < data.length; i++) {
+			a[i] = data[i].join('\t');
 		}
+		return a.join('\n');
 	}
 	
-	//console.log(data.length);
+	function getStringsAsTSV(data) {
+		return data.join('\n');
+	}
+	
+	function getObjectsAsTSV(data, keys) {
+		var a = new Array(data.length);
+		var v = new Array(keys.length);
+		for (var i = 0; i < data.length; i++) {
+			var obj = data[i];
+			for (var j = 0; j < keys.length; j++) {
+				v[j] = obj[keys[j]];
+			}
+			a[i] = v.join('\t');
+		}
+		return a.join('\n');
+	}
 	
 	var filename = outputFile+'_'+listName+'.tsv';
 	ensureFolderFor(filename);
 	
+	var keys = [];
 	var writer = new BufferedWriter(filename);
-	if (header !== undefined) writer.write(header.split(',').join('\t')+'\n');
+	
+	var dataType = Object.prototype.toString.call(data[0]);
+	
+	if (dataType == '[object Object]') {
+		// generate keys and a header
+		for (var key in data[0]) {
+			if (data[0].hasOwnProperty(key)) { 
+				keys.push(key);
+			}
+		}
+		writer.write(keys.join('\t')+'\n');
+	} else {
+		if (header !== undefined) writer.write(header.split(',').join('\t')+'\n');
+	}
 	
 	var n = Math.ceil(data.length/chunkSize);
 
 	for (var i = 0; i < n; i++) {
 		var s = '';
 		if (i > 0) s += '\n';
-		s += getAsTSV( data.slice(i*chunkSize, (i+1)*chunkSize) );
+		var dataChunk = data.slice(i*chunkSize, (i+1)*chunkSize);
+		switch (dataType) {
+			case '[object String]':
+			case '[object Number]':
+				s += getStringsAsTSV( dataChunk );
+			break;
+			case '[object Array]':
+				s += getArraysAsTSV( dataChunk );
+			break;
+			case '[object Object]':
+				s += getObjectsAsTSV( dataChunk, keys );
+			break;
+		}
+		
 		writer.write(s);
 	
 	}
@@ -246,8 +283,11 @@ exports.exportJSON = function(outputFile, listName, data) {
 			case '[object String]':
 				writer.write('"' + obj.replace(/\"/g, '\\"') + '"');
 			break;
+			case '[object Undefined]':
+				console.log('JSON export asks: There is something "undefined"!');
+			break;
 			default:
-				console.log('What is "'+typ+'"?');
+				console.log('JSON export asks: What is "'+typ+'"?');
 		} 
 	}
 	
