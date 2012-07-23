@@ -65,13 +65,17 @@ exports.decodePlan = function (filename, outputFile) {
 		}
 		
 		timeList = decodePlanBZsublist(timeList);
+		
+		// tempArray speeds up the creation of list 2
+		var tempArray = [];
 		for (var j = 0; j < timeList.length; j++) {
 			var time = timeList[j];
 			time.unshift(i);
 			time.unshift(id);
-			list2.push(time);
+			tempArray.push(time);
 			id++;
 		}
+		list2.concat(tempArray);
 		
 	}
 	// remove dummy entry
