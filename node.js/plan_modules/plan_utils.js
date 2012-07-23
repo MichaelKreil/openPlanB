@@ -172,7 +172,15 @@ exports.exportHeader = function(outputFile, data) {
 }
 
 exports.exportTSV = function(outputFile, listName, data, header) {
+	// Exports 'data' as a TSV file
+	
+	// Since some TSV files can be very large we will process the data in chunks.
+	// chunkSize is the number of lines per chunk
 	var chunkSize = 10000;
+	
+	
+	
+	// We need some helper functions to generate TSV for Arrays of: Arrays, String and Objects
 	
 	function getArraysAsTSV(data) {
 		var a = new Array(data.length);
@@ -199,16 +207,26 @@ exports.exportTSV = function(outputFile, listName, data, header) {
 		return a.join('\n');
 	}
 	
+	
+	
+	// Generate the filename for this TSV and ensure that the folder exists
 	var filename = outputFile+'_'+listName+'.tsv';
 	ensureFolderFor(filename);
 	
 	var keys = [];
+	
+	// BufferedWriter is a special file writer that uses a buffer. You can cram all your data there.
+	// BufferedWriter makes sure, that no 2GB-String will explode or that data will be written efficiently (not slowly bit by bit).
+	// Thank you captain "BufferWriter"!  \(^_^)/  
 	var writer = new BufferedWriter(filename);
 	
+	// Guess the data type of the list by checking the first entry:
 	var dataType = Object.prototype.toString.call(data[0]);
 	
 	if (dataType == '[object Object]') {
 		// generate keys and a header
+		// Attention: Only the keys of the first object are used for header an data export!
+		// Also: the given header will be ignored and be replaced with this key list
 		for (var key in data[0]) {
 			if (data[0].hasOwnProperty(key)) { 
 				keys.push(key);

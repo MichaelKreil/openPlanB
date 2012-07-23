@@ -5,7 +5,7 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	
 	
-	// Header einlesen
+	// Read file header
 	
 	var header = {unknown:[]};
 	
@@ -31,7 +31,9 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	
 	
-	// Daten einlesen
+	// Importing the first list
+	// Please note that every list entry is a object and that the key names of these objects
+	// are used to generate the TSV column heading automagically.  
 	
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
@@ -46,6 +48,10 @@ exports.decodePlan = function (filename, outputFile) {
 	}
 	planUtils.exportTSV(outputFile, '1', list1);
 	
+	
+	
+	// Importing the second list
+	
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
 		list2[i] = {
@@ -54,6 +60,8 @@ exports.decodePlan = function (filename, outputFile) {
 			offset: f.readInteger(4)
 		};
 	}
+	
+	// list2.offset points to null-terminated strings 
 	var pos0 = f.pos;
 	for (var i = 0; i < header.listLength2; i++) {
 		f.pos = pos0 + list2[i].offset; 
@@ -63,15 +71,16 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	
 	
+	// Exporting the file header data
+	
 	header.bytesLeft = f.check(outputFile);
 	planUtils.exportHeader(outputFile, header);
 	
 	
 	
-	// Datenstruktur erzeugen
+	// Generate JSON
 	
-	var
-		data = [];
+	var data = [];
 		
 	for (var i = 0; i < header.listLength1; i++) {
 		data[i] = {
@@ -84,14 +93,12 @@ exports.decodePlan = function (filename, outputFile) {
 			synonyms: []
 		}
 	}
+	
 	for (var i = 0; i < header.listLength2; i++) {
 		if (list1[list2[i].b1_ref].b2_ref != i) {
 			data[list2[i].b1_ref].synonyms.push(list2[i].text);
 		}
 	}
 	
-	
-	
-	// Alles exportieren
 	planUtils.exportJSON(outputFile, 'data', data);
 }
