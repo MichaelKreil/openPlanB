@@ -35,31 +35,31 @@ exports.decodePlan = function (filename, outputFile) {
 	
 	var list1 = [];
 	for (var i = 0; i < header.listLength1; i++) {
-		list1[i] = [
-			i,
-			f.readInteger(2),
-			f.readInteger(2),
-			f.readInteger(2),
-			f.readInteger(4),
-			f.readInteger(4)
-		];
+		list1[i] = {
+			b1_id:    i,
+			unknown1: f.readInteger(2),
+			unknown2: f.readInteger(2),
+			unknown3: f.readInteger(2),
+			IBNR:     f.readInteger(4),
+			b2_ref:   f.readInteger(4)
+		};
 	}
-	planUtils.exportTSV(outputFile, '1', list1, 'b1_id,unknown1,unknown2,unknown3,unknown4,unknown5');
+	planUtils.exportTSV(outputFile, '1', list1);
 	
 	var list2 = [];
 	for (var i = 0; i < header.listLength2; i++) {
-		list2[i] = [
-			i,
-			f.readInteger(4),
-			f.readInteger(4)
-		];
+		list2[i] = {
+			b2_id:  i,
+			b1_ref: f.readInteger(4),
+			offset: f.readInteger(4)
+		};
 	}
 	var pos0 = f.pos;
 	for (var i = 0; i < header.listLength2; i++) {
-		f.pos = pos0 + list2[i][2]; 
-		list2[i][2] = f.readNullString();
+		f.pos = pos0 + list2[i].offset; 
+		list2[i].text = f.readNullString();
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'b2_id,b1_ref?,unknown2');
+	planUtils.exportTSV(outputFile, '2', list2);
 	
 	
 	
@@ -75,18 +75,18 @@ exports.decodePlan = function (filename, outputFile) {
 		
 	for (var i = 0; i < header.listLength1; i++) {
 		data[i] = {
-			id: i,
-			unknown1: list1[i][1],
-			unknown2: list1[i][2],
-			unknown3: list1[i][3],
-			IBNR: list1[i][4],
-			name: list2[list1[i][5]][2],
+			b1_id: list1[i].b1_id,
+			unknown1: list1[i].unknown1,
+			unknown2: list1[i].unknown2,
+			unknown3: list1[i].unknown3,
+			IBNR:     list1[i].IBNR,
+			name:     list2[list1[i].b2_ref].text,
 			synonyms: []
 		}
 	}
 	for (var i = 0; i < header.listLength2; i++) {
-		if (list1[list2[i][1]][5] != i) {
-			data[list2[i][1]].synonyms.push(list2[i][2]);
+		if (list1[list2[i].b1_ref].b2_ref != i) {
+			data[list2[i].b1_ref].synonyms.push(list2[i].text);
 		}
 	}
 	
