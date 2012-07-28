@@ -51,7 +51,7 @@ function hashify(arr, key) {
 
 function scheduleByTrain() {
 	for (var f in folders) if (folders.hasOwnProperty(f)) {
-		if (f.indexOf('DB') == -1)
+		if (config.folderFilter && f.indexOf(config.folderFilter) == -1)
 			continue;
 		
 		var folder = folders[f];
@@ -76,7 +76,7 @@ function scheduleByTrain() {
 		{
 			var trainsHeader = JSON.parse(fs.readFileSync(folder.files['planzug_header.json'], 'utf8'));
 			var trains = JSON.parse(fs.readFileSync(folder.files['planzug_data.json'], 'utf8'));
-			var stations = hashify(JSON.parse(fs.readFileSync(folder.files['planb_data.json'], 'utf8')));
+			var stations = hashify(JSON.parse(fs.readFileSync(folder.files['planb_data.json'], 'utf8')), 'b1_id');
 			var trainRoutes = hashify(JSON.parse(fs.readFileSync(folder.files['planlauf_data.json'], 'utf8')));
 			var trainTypes = hashify(JSON.parse(fs.readFileSync(folder.files['plangat_data1.json'], 'utf8')), 'gatId');
 			var specialLines = hashify(JSON.parse(fs.readFileSync(folder.files['planline_data.json'], 'utf8')), 'lineId');
@@ -106,7 +106,7 @@ function scheduleByTrain() {
 			var validityBegin = new Date(trainsHeader.validityBegin);
 			
 			for (var t = 0; t < trains.length; ++t) {
-				if (t % 500 == 0)
+				if (t % 1000 == 0)
 					console.log(t);
 				
 				var train = trains[t];
@@ -119,36 +119,36 @@ function scheduleByTrain() {
 				var timeArr = -1;
 				var timeFirst = -1;
 				
-				if (!stationSchedules[stationBegin.id]) {
+				if (!stationSchedules[stationBegin.b1_id]) {
 					console.warn('WARNING: empty start station', stationBegin.name, train);
 					continue;
 				}
-				if (!stationSchedules[stationFirstStop.id]) {
+				if (!stationSchedules[stationFirstStop.b1_id]) {
 					console.warn('WARNING: empty second station', stationFirstStop.name, train);
 					continue;
 				}
-				if (!stationSchedules[stationEnd.id]) {
+				if (!stationSchedules[stationEnd.b1_id]) {
 					console.warn('WARNING: empty end station', stationEnd.name, train);
 					continue;
 				}
 				
-				for (var j in stationSchedules[stationBegin.id]) {
-					if (stationSchedules[stationBegin.id][j].trainId == t && stationSchedules[stationBegin.id][j].arr == -1) {
-						timeDep = stationSchedules[stationBegin.id][j].dep;
+				for (var j in stationSchedules[stationBegin.b1_id]) {
+					if (stationSchedules[stationBegin.b1_id][j].trainId == t && stationSchedules[stationBegin.b1_id][j].arr == -1) {
+						timeDep = stationSchedules[stationBegin.b1_id][j].dep;
 						break;
 					}
 				}
 				
-				for (var j in stationSchedules[stationFirstStop.id]) {
-					if (stationSchedules[stationFirstStop.id][j].trainId == t) {
-						timeFirst = stationSchedules[stationFirstStop.id][j].arr;
+				for (var j in stationSchedules[stationFirstStop.b1_id]) {
+					if (stationSchedules[stationFirstStop.b1_id][j].trainId == t) {
+						timeFirst = stationSchedules[stationFirstStop.b1_id][j].arr;
 						break;
 					}
 				}
 				
-				for (var j in stationSchedules[stationEnd.id]) {
-					if (stationSchedules[stationEnd.id][j].trainId == t && stationSchedules[stationEnd.id][j].dep == -1) {
-						timeArr = stationSchedules[stationEnd.id][j].arr;
+				for (var j in stationSchedules[stationEnd.b1_id]) {
+					if (stationSchedules[stationEnd.b1_id][j].trainId == t && stationSchedules[stationEnd.b1_id][j].dep == -1) {
+						timeArr = stationSchedules[stationEnd.b1_id][j].arr;
 						break;
 					}
 				}
@@ -195,7 +195,7 @@ function scheduleByTrain() {
 
 				output = [t, trainTypeName + ' ' + trainNumber, stationBegin.name, prettyTime(timeDep)];
 				
-				if (stationFirstStop.id != stationEnd.id) {
+				if (stationFirstStop.b1_id != stationEnd.b1_id) {
 					output.push(stationFirstStop.name);
 					output.push(prettyTime(timeFirst));
 				}
