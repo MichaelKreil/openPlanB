@@ -112,7 +112,7 @@ exports.decodePlan = function (filename, outputFile) {
 			frequencyId: list1[i][2],
 			platformAtStops: []
 		}
-		while ((i2 < list2.length) && (list2[i2][0] == i)) {
+		while ((i2 < list2.length) && (list2[i2][1] == i)) {
 			obj.platformAtStops.push({
 				stopNumber: list2[i2][2],
 				platform: list4[ list3[ list2[i2][4] ] [1] ][1].trim()
