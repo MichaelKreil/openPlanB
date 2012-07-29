@@ -82,7 +82,7 @@ exports.decodePlan = function (filename, outputFile) {
 		}
 		list2[i][5] = list2Helper[list2[i][5]];
 	}
-	planUtils.exportTSV(outputFile, '2', list2, 'atx2_id,unknown1,unknown2,unknown3,unknown4,unknown5');
+	planUtils.exportTSV(outputFile, '2', list2, 'atx2_id,abbreviation,unknown1,unknown2,unknown3,text');
 	
 	
 	
@@ -130,4 +130,19 @@ exports.decodePlan = function (filename, outputFile) {
 	// Alles exportieren
 	
 	planUtils.exportHeader(outputFile, header);
+
+	// Datenstruktur erzeugen
+	var data2 = [];
+	for (var i = 0; i < list2.length; i++) {
+		data2.push({
+			id: list2[i][0],
+			abbreviation: list2[i][1],
+			unknown1: list2[i][2],
+			unknown2: list2[i][3],
+			unknown3: list2[i][4],
+			text: list2[i][5]
+		});
+	}
+	
+	planUtils.exportJSON(outputFile, 'data2', data2);
 }
