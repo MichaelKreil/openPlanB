@@ -299,7 +299,7 @@ exports.exportJSON = function(outputFile, listName, data) {
 				writer.write(obj.toString());
 			break;
 			case '[object String]':
-				writer.write('"' + obj.replace(/\"/g, '\\"') + '"');
+				writer.write('"' + obj.replace(/\\/g,"\\\\").replace(/\"/g, '\\"') + '"');
 			break;
 			case '[object Undefined]':
 				console.log('JSON export asks: There is something "undefined"!');
