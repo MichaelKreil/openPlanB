@@ -5,16 +5,28 @@ var
 	width = 1920,
 	height = 1080,
 	symbolSize = 2,
-	xCenter = 13.4;
-	yCenter = 52.5;
+	
+	xCenter = 10.6,
+	yCenter = 51.2,
+	timeStep = 120,
+	yZoom = 120,
+	timeAACount = 30,
+	timeAALength = 300,
+	/*
+	xCenter = 13.4,
+	yCenter = 52.5,
+	timeStep = 10,
 	yZoom = 3000,
+	timeAACount = 30,
+	timeAALength = timeStep/2,
+	*/
 	xZoom = yZoom*Math.cos(3.141592653589793238462643 * yCenter / 180),
 	stopWaiting = 60;
 	
 
 console.log('Loading trains');
 
-var trains = JSON.parse(fs.readFileSync('../../../../data/decoded_files/fahrinfo_WINKOMP526/schedule.json'));
+var trains = JSON.parse(fs.readFileSync('../../../../data/decoded_files/DBFahrplaninfo/DB/schedule.json'));
 
 console.log('Preparing trains');
 
@@ -41,18 +53,72 @@ for (var i = 0; i < trains.length; i++) {
 	}
 	train.minT = points[0].t0;
 	train.maxT = points[points.length - 1].t1 + train.fint*train.fite;
+	
+	
+	switch (train.type) {
+		case 'S':
+		case 'Bus':
+		case 'STR':
+			train.typeId = 1;
+		break;
+		case 'NWB':
+		case 'ag':
+		case 'ERB':
+		case 'VBG':
+		case 'HEX':
+		case 'SBB':
+		case 'HLB':
+		case 'OE':
+		case 'MRB':
+		case 'EB':
+		case 'HzL':
+		case 'ME':
+		case 'CAN':
+		case 'VEC':
+		case 'BOB':
+		case 'ABR':
+		case 'VIA':
+		case 'ALX':
+		case 'OLA':
+		case 'WFB':
+		case 'BRB':
+			train.typeId = 2;
+		break;
+		case 'RB':
+		case 'RE':
+		case 'IRE':
+			train.typeId = 3;
+		break;
+		case 'ICE':
+		case 'IC':
+			train.typeId = 4;
+		break;
+		default:
+			train.typeId = 0;
+	}
 }
+
+/*
+var trainTypes = {};
+for (var i = 0; i < trains.length; i++) {
+	key = '_'+trains[i].type;
+	if (trainTypes[key] === undefined) {
+		trainTypes[key] = {count:0, points:0, type:trains[i].type};
+	}
+	trainTypes[key].count++;
+	trainTypes[key].points += trains[i].points.length;
+};
+console.log(trainTypes);
+process.exit();
+*/
 
 console.log('Drawing trains');
 
 var image = new Image(width, height, 3, 4);
 
-var
-	timeStep = 10,
-	timeAACount = 30,
-	timeAALength = timeStep/2;
 
 var maxFrameNumber = 86400/timeStep;
+//maxFrameNumber = 100;
 
 for (var frameNumber = 0; frameNumber < maxFrameNumber; frameNumber++) {
 	time = frameNumber*timeStep;
@@ -60,14 +126,24 @@ for (var frameNumber = 0; frameNumber < maxFrameNumber; frameNumber++) {
 	filename = './frames/'+filename.substr(filename.length-4, 4)+'.png';
 	
 	if (!fs.existsSync(filename)) {
+		fs.writeFileSync(filename, '');
+		
 		console.log('draw frame: '+frameNumber);
 		
 		image.resetWhite();
-	
+		
+		/*
 		for (var i = 0; i < trains.length; i++) if (trains[i].type == 'Bus' ) drawTrainLine(trains[i], [137/255,       0, 106/255], 'c', symbolSize*1.5);
 		for (var i = 0; i < trains.length; i++) if (trains[i].type == 'Tram') drawTrainLine(trains[i], [221/255,       0,       0], 'r', symbolSize*1.5);
 		for (var i = 0; i < trains.length; i++) if (trains[i].type == 'U'   ) drawTrainLine(trains[i], [      0,  74/255, 143/255], 'r', symbolSize*2.5);
 		for (var i = 0; i < trains.length; i++) if (trains[i].type == 'S'   ) drawTrainLine(trains[i], [      0, 138/255,  68/255], 'c', symbolSize*2.5);
+		*/
+		
+		for (var i = 0; i < trains.length; i++) if (trains[i].typeId == 1) drawTrainLine(trains[i], [0.5, 0.5, 0.5], 'c', symbolSize*0.5);
+		for (var i = 0; i < trains.length; i++) if (trains[i].typeId == 2) drawTrainLine(trains[i], [0.5, 0.5, 0.5], 'c', symbolSize*1);
+		for (var i = 0; i < trains.length; i++) if (trains[i].typeId == 3) drawTrainLine(trains[i], [0.7,   0,   0], 'c', symbolSize*1);
+		for (var i = 0; i < trains.length; i++) if (trains[i].typeId == 4) drawTrainLine(trains[i], [0.7,   0,   0], 'c', symbolSize*2);
+
 		
 		console.log('Saving png: '+filename);
 		image.savePNG(filename);
@@ -79,7 +155,8 @@ function drawTrainLine(train, color, symbol, symbolSize) {
 	var alpha = 1 - Math.pow(0.1, 1/timeAACount);
 	
 	for (var t = 0; t < timeAACount; t++) {
-		drawTrainLine2(train, color, symbol, symbolSize, time + t*step, alpha)
+		//drawTrainLine2(train, color, symbol, symbolSize, time + t*step, alpha)
+		drawTrainLine2(train, color, symbol, symbolSize, time - timeAALength + t*step, alpha*t/timeAACount)
 	}
 }
 

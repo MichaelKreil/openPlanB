@@ -1,9 +1,9 @@
 var fs = require('fs');
 var gtfs_utils = require('./gtfs_utils.js');
 
-exports.makeGTFS = function (neededFiles, outputFolder) {
-	var stations = JSON.parse(fs.readFileSync(neededFiles[0], 'utf8'));
-	var geo      = JSON.parse(fs.readFileSync(neededFiles[1], 'utf8'));
+exports.makeGTFS = function (data, outputFolder) {
+	var stations = data.b;
+	var geo      = data.kgeo;
 
 	var list = [];
 	list.push([

@@ -4,7 +4,9 @@ var fs = require('fs');
 var path = require('path');
 
 var gtfsModules = [
-	{ name:'stops', module: require('./gtfs_stops.js'), needs: ['planb_data.json', 'plankgeo_data.json'] }
+	{ name:'agency', module: require('./gtfs_agency.js'), needs: {betr1:'planbetr_data1.json'} },
+	{ name:'routes', module: require('./gtfs_routes.js'), needs: {line:'planline_data.json', zug:'planzug_data.json', betr2:'planbetr_data2.json', betr3:'planbetr_data3.json'} },
+	{ name:'stops',  module: require('./gtfs_stops.js'),  needs: {b:'planb_data.json', kgeo:'plankgeo_data.json'} }
 ];
 
 var folders = [];
@@ -20,10 +22,10 @@ exports.makeGTFS = function (config) {
 			console.log('   to "'+gtfsModules[i].name+'"');
 			var needs = gtfsModules[i].needs;
 			var foundNeededFiles = true;
-			var neededFiles = [];
-			for (var j = 0; j < needs.length; j++) {
+			var neededFiles = {};
+			for (var name in needs) if (needs.hasOwnProperty(name)) {
 				if (folder.files[needs[j]] !== undefined) {
-					neededFiles[j] = folder.files[needs[j]];
+					neededFiles[name] = folder.files[needs[name]];
 				} else {
 					foundNeededFiles = false;
 					console.log('      ERROR: Missing JSON "'+needs[j]+'"');
@@ -31,6 +33,9 @@ exports.makeGTFS = function (config) {
 			}
 			if (foundNeededFiles) {
 				var outputFolder = path.normalize(config.gtfsFolder + folder.name.substr(config.decodeFolder.length));
+				for (var name in neededFiles) if (neededFiles.hasOwnProperty(name)) {
+					neededFiles[name] = JSON.parse(fs.readFileSync(neededFiles[name], 'utf8'))
+				}
 				gtfsModules[i].module.makeGTFS(neededFiles, outputFolder);	
 			}
 		}
