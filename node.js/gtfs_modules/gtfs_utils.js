@@ -4,8 +4,8 @@ var fs = require('fs');
 var path = require('path');
 
 var gtfsModules = [
-	{ name:'agency', module: require('./gtfs_agency.js'), needs: {betr1:'planbetr_data1.json'} },
-	{ name:'routes', module: require('./gtfs_routes.js'), needs: {line:'planline_data.json', zug:'planzug_data.json', betr2:'planbetr_data2.json', betr3:'planbetr_data3.json'} },
+	{ name:'agency', module: require('./gtfs_agency.js'), needs: {betr1:'planbetr_list1.json'} },
+	{ name:'routes', module: require('./gtfs_routes.js'), needs: {line:'planline_data.json', zug:'planzug_data.json', routes: 'planlauf_data.json', betr2:'planbetr_list2.json', betr3:'planbetr_list3.json', b:'planb_data.json'} },
 	{ name:'stops',  module: require('./gtfs_stops.js'),  needs: {b:'planb_data.json', kgeo:'plankgeo_data.json'} }
 ];
 
