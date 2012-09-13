@@ -93,7 +93,7 @@ function scheduleByTrain() {
 			var schedule = JSON.parse(fs.readFileSync(folder.files['planbz_data.json'], 'utf8'));
 			var stationSchedules = {};
 			for (var i in schedule) {
-				stationSchedules[ schedule[i].station_id ] = stationSchedules[ station_id ] || [];
+				stationSchedules[ schedule[i].station_id ] = stationSchedules[ schedule[i].station_id ] || [];
 				stationSchedules[ schedule[i].station_id ].push({
 					trainId: schedule[i].train_id,
 					arr: schedule[i].arr,
@@ -253,6 +253,8 @@ function scheduleByTrain() {
 				schedule.push(output.join('\t'));
 			}
 			fs.writeFileSync(folder.folder + '/scheduleByTrain.tsv', schedule.join('\n'), 'binary');
+		} else {
+			console.error("Necessary files missing");
 		}
 	}
 }
