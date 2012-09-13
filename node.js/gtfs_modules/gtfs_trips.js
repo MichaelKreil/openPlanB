@@ -3,7 +3,7 @@ var gtfs_utils = require('./gtfs_utils.js');
 
 //Helper functions
 var convertTime = function(time) {
-	return Math.floor(time/60) + ":" + time%60 + ":00";
+	return Math.floor(time/60) + ":" + ((time%60 > 9) ? time%60 : "0" + time%60) + ":00";
 }
 
 
@@ -66,8 +66,8 @@ exports.makeGTFS = function (data, outputFolder) {
 	// Create lookup table scheduleForTrains
 	// scheduleForTrains[train_id][station_id:{arr,dep}]
 	for (var i = 0; i < schedule.length; i++) {
-		scheduleForTrains[schedule[i].traind_id] = scheduleForTrains[schedule[i].traind_id] || [];
-		scheduleForTrains[schedule[i].traind_id][schedule[i].station_id].push(schedule[i]);
+		scheduleForTrains[schedule[i].train_id] = scheduleForTrains[schedule[i].train_id] || [];
+		scheduleForTrains[schedule[i].train_id][schedule[i].station_id] = schedule[i];
 	}
 
 
@@ -77,27 +77,28 @@ exports.makeGTFS = function (data, outputFolder) {
 	for (var t = 0; t < trains.length; ++t) {
 		var train = trains[t];
 		var stops = trainRoutes[ train.laufId ].stops;
+
 		var trainSchedule = scheduleForTrains[train.id];
 
 		trips.push([train.laufId, train.id, train.id]);
 
 		//Walktrough stops and save all
 		for (var s = 0; s < stops.length; ++s){
-			var stopID = stops[i];
+			var stopID = stops[s];
 			stopTimes.push([
 				train.id,
 				convertTime(trainSchedule[stopID].arr),
 				convertTime(trainSchedule[stopID].dep),
 				stopID,
-				i
+				s
 			]);
 		}
 
 		
-		if (train.frequency.iteration > 0) {
+		if (train.frequency.iterations > 0) {
 			//This train runs more than once
 			var startTime = trainSchedule[stops[0]].dep;
-			var stopTime = train.frequency.iteration * train.frequency.interval + startTime;
+			var stopTime = train.frequency.iterations * train.frequency.interval + startTime;
 			frequencies.push([
 				train.id,
 				convertTime(startTime),
