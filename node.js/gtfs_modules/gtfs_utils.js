@@ -6,7 +6,25 @@ var path = require('path');
 var gtfsModules = [
 	{ name:'agency', module: require('./gtfs_agency.js'), needs: {betr1:'planbetr_list1.json'} },
 	{ name:'routes', module: require('./gtfs_routes.js'), needs: {line:'planline_data.json', zug:'planzug_data.json', routes: 'planlauf_data.json', betr2:'planbetr_list2.json', betr3:'planbetr_list3.json', b:'planb_data.json'} },
-	{ name:'stops',  module: require('./gtfs_stops.js'),  needs: {b:'planb_data.json', kgeo:'plankgeo_data.json'} }
+	{ name:'stops',  module: require('./gtfs_stops.js'),  needs: {b:'planb_data.json', kgeo:'plankgeo_data.json'} },
+	{ name:'trips',  module: require('./gtfs_trips.js'), needs: {
+											trainsHeader : 'planzug_header.json',
+											trains : 'planzug_data.json',
+											stations : 'planb_data.json',
+											trainRoutes : 'planlauf_data.json',
+											trainTypes : 'plangat_data1.json',
+											specialLines : 'planline_data.json',
+											trainAttributesTrainNumbers : 'planatr_data1.json',
+											trainAttributesProperties : 'planatr_data2.json',
+											trainAttributesDaysValid : 'planatr_data3.json',
+											trainAttributesBorderCrossings : 'planatr_data5.json',
+											trainOperatorsList1 : 'planbetr_list1.json',
+											trainOperatorsList2 : 'planbetr_list2.json',
+											trainOperatorsList3 : 'planbetr_list3.json',
+											daysValidBitsets : 'planw_data.json',
+											borderStations : 'plangrz_data.json',
+											schedule: 'planbz_data.json'
+	}}
 ];
 
 var folders = [];
