@@ -93,11 +93,11 @@ function scheduleByTrain() {
 			var schedule = JSON.parse(fs.readFileSync(folder.files['planbz_data.json'], 'utf8'));
 			var stationSchedules = {};
 			for (var i in schedule) {
-				stationSchedules[ schedule[i].bId ] = stationSchedules[ schedule[i].bId ] || [];
-				stationSchedules[ schedule[i].bId ].push({
-					trainId: schedule[i].zugId,
-					arr: schedule[i].arrTime,
-					dep: schedule[i].depTime
+				stationSchedules[ schedule[i].station_id ] = stationSchedules[ station_id ] || [];
+				stationSchedules[ schedule[i].station_id ].push({
+					trainId: schedule[i].train_id,
+					arr: schedule[i].arr,
+					dep: schedule[i].dep
 				});
 			}
 			// free memory
