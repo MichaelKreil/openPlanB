@@ -1,13 +1,17 @@
 var fs = require('fs');
 var gtfs_utils = require('./gtfs_utils.js');
 
-//Helper functions
-var convertTime = function(time) {
-	return Math.floor(time/60) + ":" + ((time%60 > 9) ? time%60 : "0" + time%60) + ":00";
-}
+
 
 
 exports.makeGTFS = function (data, outputFolder) {
+	//Helper functions
+	var convertTime = function(time) {
+		return Math.floor(time/60) + ":" + ((time%60 > 9) ? time%60 : "0" + time%60) + ":00";
+	}
+	var getProperty = function(code) {
+		return code + ' ' + propertyDescription[code].text;
+	}
 	var trainsHeader = data.trainsHeader;
 	var trains = data.trains;
 	var stations = data.stations;
@@ -107,6 +111,12 @@ exports.makeGTFS = function (data, outputFolder) {
 				1
 			]);
 		}
+
+
+		//Now save stuff to calendar
+		//Why is PlanAtr empty for the VBB?
+		calendar.push([train.id,1,1,1,1,1,1,1,20100101, 20131231]);
+
 	}
 
 	gtfs_utils.outputGTFSFile(trips, outputFolder, 'trips');
