@@ -24,11 +24,11 @@ exports.makeGTFS = function (config) {
 			var foundNeededFiles = true;
 			var neededFiles = {};
 			for (var name in needs) if (needs.hasOwnProperty(name)) {
-				if (folder.files[needs[j]] !== undefined) {
+				if (folder.files[needs[name]] !== undefined) {
 					neededFiles[name] = folder.files[needs[name]];
 				} else {
 					foundNeededFiles = false;
-					console.log('      ERROR: Missing JSON "'+needs[j]+'"');
+					console.log('      ERROR: Missing JSON "'+needs[name]+'"');
 				}
 			}
 			if (foundNeededFiles) {
