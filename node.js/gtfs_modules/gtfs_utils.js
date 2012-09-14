@@ -5,6 +5,7 @@ var path = require('path');
 
 var gtfsModules = [
 	{ name:'agency', module: require('./gtfs_agency.js'), needs: {betr1:'planbetr_list1.json'} },
+	{ name:'transfers', module: require('./gtfs_transfers.js'), needs: {transfers:'plankant_data.json'} },
 	{ name:'routes', module: require('./gtfs_routes.js'), needs: {line:'planline_data.json', zug:'planzug_data.json', routes: 'planlauf_data.json', betr2:'planbetr_list2.json', betr3:'planbetr_list3.json', b:'planb_data.json'} },
 	{ name:'stops',  module: require('./gtfs_stops.js'),  needs: {b:'planb_data.json', kgeo:'plankgeo_data.json'} },
 	{ name:'trips',  module: require('./gtfs_trips.js'), needs: {
@@ -54,12 +55,12 @@ exports.makeGTFS = function (config) {
 				for (var name in neededFiles) if (neededFiles.hasOwnProperty(name)) {
 					neededFiles[name] = JSON.parse(fs.readFileSync(neededFiles[name], 'utf8'))
 				}
-				gtfsModules[i].module.makeGTFS(neededFiles, outputFolder);	
+				gtfsModules[i].module.makeGTFS(neededFiles, outputFolder);
 			}
 		}
 	}
 
-}
+};
 
 exports.outputGTFSFile = function (list, outputFolder, name) {
 	var colCount = list[0].length;
@@ -74,19 +75,19 @@ exports.outputGTFSFile = function (list, outputFolder, name) {
 	var filename = outputFolder+'/'+name+'.txt';
 	ensureFolderFor(filename);
 	fs.writeFileSync(filename, a, 'utf8'); 
-}
+};
 
 exports.formatNumber = function (value, precision) {
 	return value.toFixed(precision);
-}
+};
 
 exports.formatString = function (text) {
-	return '"'+text.replace(/\"/g, '""')+'"';
-}
+	return '"'+text.replace(/,/g, '.').replace(/\"/g, '""')+'"';
+};
 
 exports.formatInteger = function (value, precision) {
 	return value.toFixed(0);
-}
+};
 
 function ensureFolderFor(filename) {
 	var dirname = path.dirname(filename);
@@ -97,7 +98,7 @@ function ensureFolderFor(filename) {
 }
 
 function scanFolder(fol, recursive) {
-	var stats = fs.statSync(fol)
+	var stats = fs.statSync(fol);
 	if (stats.isFile()) {
 		var folder = fol.split('/');
 		var filename = folder.pop();
