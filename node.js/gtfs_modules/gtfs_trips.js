@@ -57,6 +57,7 @@ exports.makeGTFS = function (data, outputFolder) {
 		'start_date',
 		'end_date'
 	]);
+	calendar.push(["everyday",1,1,1,1,1,1,1,20100101, 20131231]);
 	var frequencies = [];
 	frequencies.push([
 		'trip_id',
@@ -68,44 +69,72 @@ exports.makeGTFS = function (data, outputFolder) {
 
 	var scheduleForTrains = [];
 	// Create lookup table scheduleForTrains
-	// scheduleForTrains[train_id][station_id:{arr,dep}]
+	// scheduleForTrains[train_id][station_id:[{arr,dep}, {arr,dep}]]
 	for (var i = 0; i < schedule.length; i++) {
 		//First fix times == -1, They aren't valid in GTFS
 		schedule[i].arr = (schedule[i].arr == -1) ? schedule[i].dep : schedule[i].arr;
 		schedule[i].dep = (schedule[i].dep == -1) ? schedule[i].arr : schedule[i].dep;
+
 		//Now populate lookup
 		scheduleForTrains[schedule[i].train_id] = scheduleForTrains[schedule[i].train_id] || [];
-		scheduleForTrains[schedule[i].train_id][schedule[i].station_id] = schedule[i];
+		var trainSchedule = scheduleForTrains[schedule[i].train_id];
+
+		//Sometimes a bus visits a station twice
+		trainSchedule[schedule[i].station_id] = trainSchedule[schedule[i].station_id] || [];
+		trainSchedule[schedule[i].station_id].push(schedule[i]);
 	}
 
 
 	//Go trough all trains from PlanZUG
 	//Reuse their ID as service_id in GTFS
-
 	for (var t = 0; t < trains.length; ++t) {
+		var lastDeparture = 0;
+		var addMinutes = 0;
+		var seenStops = {};
 		var train = trains[t];
 		var stops = trainRoutes[ train.laufId ].stops;
 
 		var trainSchedule = scheduleForTrains[train.id];
 
-		trips.push([train.laufId, train.id, train.id]);
+		trips.push([train.laufId, "everyday", train.id]);
 
 		//Walktrough stops and save all
 		for (var s = 0; s < stops.length; ++s){
 			var stopID = stops[s];
+			seenStops[stopID] = seenStops[stopID] || 0;
+
+			//A bus might stop at a station twice
+			var currentStop = trainSchedule[stopID][seenStops[stopID]];
+
+			//Sometimes you have stuff like this:
+			// 26728,13:19:00,13:34:00,2532,0
+			// 26728,13:21:00,13:22:00,2436,1
+			// It only affects the first stop
+			if ( s === 0 && currentStop.dep > trainSchedule[stops[1]][0].arr ) {
+				currentStop.dep = currentStop.arr;
+			}
+			
+			//If a trains runs across midnight,
+			//the times should be 24:01 instead of 00:01
+			if ( currentStop.dep < lastDeparture ) {
+				addMinutes = addMinutes + 1440;
+			}
+
 			stopTimes.push([
 				train.id,
-				convertTime(trainSchedule[stopID].arr),
-				convertTime(trainSchedule[stopID].dep),
+				convertTime(currentStop.arr + addMinutes),
+				convertTime(currentStop.dep + addMinutes),
 				stopID,
 				s
 			]);
-		}
 
+			//Add 1 to stopcounter
+			seenStops[stopID]++;
+		}
 		
 		if (train.frequency.iterations > 0) {
 			//This train runs more than once
-			var startTime = trainSchedule[stops[0]].dep;
+			var startTime = trainSchedule[stops[0]][0].dep;
 			var stopTime = train.frequency.iterations * train.frequency.interval + startTime;
 			frequencies.push([
 				train.id,
@@ -116,10 +145,9 @@ exports.makeGTFS = function (data, outputFolder) {
 			]);
 		}
 
-
 		//Now save stuff to calendar
 		//Why is PlanAtr empty for the VBB?
-		calendar.push([train.id,1,1,1,1,1,1,1,20100101, 20131231]);
+		//calendar.push([train.id,1,1,1,1,1,1,1,20100101, 20131231]);
 
 	}
 
