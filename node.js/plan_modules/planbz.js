@@ -68,7 +68,7 @@ exports.decodePlan = function (filename, outputFile) {
 		timeList = decodePlanBZsublist(timeList);
 		for (var j = 0; j < timeList.length; j++) {
 			var time = timeList[j];
-			time.bz1_ref = i;
+			time.station_id = i;
 			time.bz2_id = id;
 			list2.push(time);
 			id++;
@@ -79,29 +79,13 @@ exports.decodePlan = function (filename, outputFile) {
 	list1.pop();
 	
 	planUtils.exportTSV(outputFile, '2', list2);
-	planUtils.exportJSON(outputFile, '2', list2);
+	planUtils.exportJSON(outputFile, 'data', list2);
 	
 	
 	// Export Header
 	header.bytesLeft = f.check(outputFile);
 	planUtils.exportHeader(outputFile, header);
-	
-	
-	
-	/*
-	// Export JSON
-	var data = [];
-	for (var i = 0; i < list2.length; ++i) {
-		data.push({
-			id: list2[i][0],
-			bId: list2[i][1],
-			zugId: list2[i][2],
-			arrTime: list2[i][3],
-			depTime: list2[i][4]
-		});
-	}
-	planUtils.exportJSON(outputFile, 'data', data);
-	*/
+
 }
 
 function parseDateWord(dateWord) {

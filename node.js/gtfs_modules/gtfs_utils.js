@@ -4,9 +4,28 @@ var fs = require('fs');
 var path = require('path');
 
 var gtfsModules = [
-	{ name:'agency', module: require('./gtfs_agency.js'), needs: {betr1:'planbetr_data1.json'} },
-	{ name:'routes', module: require('./gtfs_routes.js'), needs: {line:'planline_data.json', zug:'planzug_data.json', betr2:'planbetr_data2.json', betr3:'planbetr_data3.json'} },
-	{ name:'stops',  module: require('./gtfs_stops.js'),  needs: {b:'planb_data.json', kgeo:'plankgeo_data.json'} }
+	{ name:'agency', module: require('./gtfs_agency.js'), needs: {betr1:'planbetr_list1.json'} },
+	{ name:'transfers', module: require('./gtfs_transfers.js'), needs: {transfers:'plankant_data.json'} },
+	{ name:'routes', module: require('./gtfs_routes.js'), needs: {line:'planline_data.json', zug:'planzug_data.json', routes: 'planlauf_data.json', betr2:'planbetr_list2.json', betr3:'planbetr_list3.json', b:'planb_data.json'} },
+	{ name:'stops',  module: require('./gtfs_stops.js'),  needs: {b:'planb_data.json', kgeo:'plankgeo_data.json'} },
+	{ name:'trips',  module: require('./gtfs_trips.js'), needs: {
+											trainsHeader : 'planzug_header.json',
+											trains : 'planzug_data.json',
+											stations : 'planb_data.json',
+											trainRoutes : 'planlauf_data.json',
+											trainTypes : 'plangat_data1.json',
+											specialLines : 'planline_data.json',
+											trainAttributesTrainNumbers : 'planatr_data1.json',
+											trainAttributesProperties : 'planatr_data2.json',
+											trainAttributesDaysValid : 'planatr_data3.json',
+											trainAttributesBorderCrossings : 'planatr_data5.json',
+											trainOperatorsList1 : 'planbetr_list1.json',
+											trainOperatorsList2 : 'planbetr_list2.json',
+											trainOperatorsList3 : 'planbetr_list3.json',
+											daysValidBitsets : 'planw_data.json',
+											borderStations : 'plangrz_data.json',
+											schedule: 'planbz_data.json'
+	}}
 ];
 
 var folders = [];
@@ -24,11 +43,11 @@ exports.makeGTFS = function (config) {
 			var foundNeededFiles = true;
 			var neededFiles = {};
 			for (var name in needs) if (needs.hasOwnProperty(name)) {
-				if (folder.files[needs[j]] !== undefined) {
+				if (folder.files[needs[name]] !== undefined) {
 					neededFiles[name] = folder.files[needs[name]];
 				} else {
 					foundNeededFiles = false;
-					console.log('      ERROR: Missing JSON "'+needs[j]+'"');
+					console.log('      ERROR: Missing JSON "'+needs[name]+'"');
 				}
 			}
 			if (foundNeededFiles) {
@@ -36,12 +55,12 @@ exports.makeGTFS = function (config) {
 				for (var name in neededFiles) if (neededFiles.hasOwnProperty(name)) {
 					neededFiles[name] = JSON.parse(fs.readFileSync(neededFiles[name], 'utf8'))
 				}
-				gtfsModules[i].module.makeGTFS(neededFiles, outputFolder);	
+				gtfsModules[i].module.makeGTFS(neededFiles, outputFolder);
 			}
 		}
 	}
 
-}
+};
 
 exports.outputGTFSFile = function (list, outputFolder, name) {
 	var colCount = list[0].length;
@@ -56,19 +75,19 @@ exports.outputGTFSFile = function (list, outputFolder, name) {
 	var filename = outputFolder+'/'+name+'.txt';
 	ensureFolderFor(filename);
 	fs.writeFileSync(filename, a, 'utf8'); 
-}
+};
 
 exports.formatNumber = function (value, precision) {
 	return value.toFixed(precision);
-}
+};
 
 exports.formatString = function (text) {
-	return '"'+text.replace(/\"/g, '""')+'"';
-}
+	return '"'+text.replace(/,/g, '.').replace(/\"/g, '""')+'"';
+};
 
 exports.formatInteger = function (value, precision) {
 	return value.toFixed(0);
-}
+};
 
 function ensureFolderFor(filename) {
 	var dirname = path.dirname(filename);
@@ -79,7 +98,7 @@ function ensureFolderFor(filename) {
 }
 
 function scanFolder(fol, recursive) {
-	var stats = fs.statSync(fol)
+	var stats = fs.statSync(fol);
 	if (stats.isFile()) {
 		var folder = fol.split('/');
 		var filename = folder.pop();

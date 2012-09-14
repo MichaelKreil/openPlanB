@@ -22,17 +22,15 @@ exports.decodePlan = function (filename, outputFile) {
 	var headerThingySize;
 	var list2BlockSize;
 	var list3BlockSize;
-	switch (header.size) {
-	 	case 128:
-	 	// Hab nicht rausbekommen, warum manchmal dieser Integer 2/4 Bytes lang ist
-	 		headerThingySize = 4;
-	 		list2BlockSize = 8;
-	 		list3BlockSize = 6;
-	 	break;
-	 	default:
-	 		headerThingySize = 2;
-	 		list2BlockSize = 6;
-	 		list3BlockSize = 4;
+	// Hab nicht rausbekommen, warum manchmal dieser Integer 2/4 Bytes lang ist
+	if (header.size == 128) {
+		headerThingySize = 4;
+		list2BlockSize = 8;
+		list3BlockSize = 6;
+	} else {
+		headerThingySize = 2;
+		list2BlockSize = 6;
+		list3BlockSize = 4;
 	}
 	
 	header.listLength3 = f.readInteger(headerThingySize);

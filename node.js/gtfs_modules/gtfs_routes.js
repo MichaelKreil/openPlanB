@@ -6,16 +6,35 @@ exports.makeGTFS = function (data, outputFolder) {
 	var zug   = data.zug;
 	var betr2 = data.betr2;
 	var betr3 = data.betr3;
-	
-	var line2betr = [];
+	var stations = data.b;
+	var routes = data.routes;
 
+	var line2betr = [];
 	for (var i = 0; i < zug.length; i++) {
-		var key = zug[i].lineId;
+		var key = zug[i].laufId;
 		var value = betr3[i].betr2Id;
 		value = betr2[value].betr1Id;
 		line2betr[key] = value;
 	}
-	
+
+	//Save line number (U1, U3, U9 etc) for all routes:
+	var linesVsRoutes = [];
+	for (var i = 0; i < zug.length; i++) {
+		linesVsRoutes[zug[i].laufId] = zug[i].trainNumber;
+	}
+
+	//Save transport type (Bus, Tram, Train etc.) for all routes:
+	var transportTypeVsRoutes = [];
+	for (var i = 0; i < zug.length; i++) {
+		transportTypeVsRoutes[zug[i].laufId] = zug[i].trainType;
+	}
+
+	//Extract line names 
+	var lineNames = [];	
+	for (var i = 0; i < line.length; i++) {
+		lineNames[line[i].lineId] = line[i].lineName;
+	}
+
 	var list = [];
 	list.push([
 		'route_id',
@@ -24,39 +43,65 @@ exports.makeGTFS = function (data, outputFolder) {
 		'route_long_name',
 		'route_type'
 	]);
-	
-	for (var i = 0; i < line.length; i++) {
+
+
+	for (routeID in linesVsRoutes) {
 		var entry = [];
-		
+
 		// route_id
-		if (i != line[i].lineId) console.error('ERROR lineId is not correct');
-		entry.push(gtfs_utils.formatInteger(i));
-		
+		entry.push(gtfs_utils.formatInteger(parseInt(routeID,10)));
+
 		// agency_id
-		entry.push(gtfs_utils.formatString(line2betr[i]));
-		
+		entry.push(gtfs_utils.formatInteger(line2betr[routeID]));
+
 		// route_short_name
-		entry.push(gtfs_utils.formatString(line[i].lineName));
-		
+		entry.push(gtfs_utils.formatString(lineNames[linesVsRoutes[routeID]] || "UnknownName"));
+
 		// route_long_name
-		entry.push(gtfs_utils.formatString(''))
+		var lineLength = routes[routeID].stops.length;
+		var lineFrom = routes[routeID].stops[0];
+		var lineTo = routes[routeID].stops[lineLength-1];
+		lineFrom = stations[lineFrom].name;
+		lineTo = stations[lineTo].name;
+
+		entry.push(gtfs_utils.formatString(lineFrom + " -> " + lineTo));
 		
+		// TODO: UNCOMPLETE
 		// route_type
-		
+		// 0 - Tram, Streetcar, Light rail. Any light rail or street level system within a metropolitan area.
+		// 1 - Subway, Metro. Any underground rail system within a metropolitan area.
+		// 2 - Rail. Used for intercity or long-distance travel.
+		// 3 - Bus. Used for short- and long-distance bus routes.
+		// 4 - Ferry. Used for short- and long-distance boat service.
+
+		var routeType;
+		switch(transportTypeVsRoutes[routeID]) {
+			case 85:
+				routeType = 2;
+				break;
+			case 86:
+				routeType = 3;
+				break;
+			case 87:
+				routeType = 1;
+				break;
+			case 88:
+				routeType = 0;
+				break;
+			case 89:
+				routeType = 4;
+				break;
+			case 90:
+				routeType = 2;
+				break;
+			default:
+				//Rail
+				routeType = 2;
+		}
+		entry.push(gtfs_utils.formatInteger(routeType));
 
 		list.push(entry);
-		
-		[
-			,
-			
-			
-			
-			,
-			gtfs_utils.formatNumber(geo[i].lat, 6),
-			gtfs_utils.formatNumber(geo[i].lon, 6),
-			gtfs_utils.formatString('DE')
-		]);
 	}
-	
-	gtfs_utils.outputGTFSFile(list, outputFolder, 'stops');
+
+	gtfs_utils.outputGTFSFile(list, outputFolder, 'routes');
 }
