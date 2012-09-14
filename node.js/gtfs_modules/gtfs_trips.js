@@ -8,10 +8,10 @@ exports.makeGTFS = function (data, outputFolder) {
 	//Helper functions
 	var convertTime = function(time) {
 		return Math.floor(time/60) + ":" + ((time%60 > 9) ? time%60 : "0" + time%60) + ":00";
-	}
+	};
 	var getProperty = function(code) {
 		return code + ' ' + propertyDescription[code].text;
-	}
+	};
 	var trainsHeader = data.trainsHeader;
 	var trains = data.trains;
 	var stations = data.stations;
@@ -70,6 +70,10 @@ exports.makeGTFS = function (data, outputFolder) {
 	// Create lookup table scheduleForTrains
 	// scheduleForTrains[train_id][station_id:{arr,dep}]
 	for (var i = 0; i < schedule.length; i++) {
+		//First fix times == -1, They aren't valid in GTFS
+		schedule[i].arr = (schedule[i].arr == -1) ? schedule[i].dep : schedule[i].arr;
+		schedule[i].dep = (schedule[i].dep == -1) ? schedule[i].arr : schedule[i].dep;
+		//Now populate lookup
 		scheduleForTrains[schedule[i].train_id] = scheduleForTrains[schedule[i].train_id] || [];
 		scheduleForTrains[schedule[i].train_id][schedule[i].station_id] = schedule[i];
 	}
