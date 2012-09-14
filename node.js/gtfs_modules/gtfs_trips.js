@@ -113,7 +113,7 @@ exports.makeGTFS = function (data, outputFolder) {
 			if ( s === 0 && currentStop.dep > trainSchedule[stops[1]][0].arr ) {
 				currentStop.dep = currentStop.arr;
 			}
-			
+
 			//If a trains runs across midnight,
 			//the times should be 24:01 instead of 00:01
 			if ( currentStop.dep < lastDeparture ) {
@@ -130,6 +130,9 @@ exports.makeGTFS = function (data, outputFolder) {
 
 			//Add 1 to stopcounter
 			seenStops[stopID]++;
+
+			//Update last departure
+			lastDeparture = currentStop.dep + addMinutes;
 		}
 		
 		if (train.frequency.iterations > 0) {

@@ -78,17 +78,25 @@ exports.makeGTFS = function (data, outputFolder) {
 		switch(transportTypeVsRoutes[routeID]) {
 			case 85:
 				routeType = 2;
+				break;
+			case 86:
+				routeType = 3;
+				break;
 			case 87:
 				routeType = 1;
+				break;
 			case 88:
 				routeType = 0;
+				break;
 			case 89:
 				routeType = 4;
+				break;
 			case 90:
 				routeType = 2;
+				break;
 			default:
-				//Bus
-				routeType = 3;
+				//Rail
+				routeType = 2;
 		}
 		entry.push(gtfs_utils.formatInteger(routeType));
 
