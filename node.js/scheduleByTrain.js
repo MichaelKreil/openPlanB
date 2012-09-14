@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var utils = require('./schedule_utils.js');
 var planUtils = require('./plan_modules/plan_utils.js');
 
 var config = fs.readFileSync('config.json', 'utf8');
@@ -93,11 +94,11 @@ function scheduleByTrain() {
 			var schedule = JSON.parse(fs.readFileSync(folder.files['planbz_data.json'], 'utf8'));
 			var stationSchedules = {};
 			for (var i in schedule) {
-				stationSchedules[ schedule[i].bId ] = stationSchedules[ schedule[i].bId ] || [];
-				stationSchedules[ schedule[i].bId ].push({
-					trainId: schedule[i].zugId,
-					arr: schedule[i].arrTime,
-					dep: schedule[i].depTime
+				stationSchedules[ schedule[i].station_id ] = stationSchedules[ schedule[i].station_id ] || [];
+				stationSchedules[ schedule[i].station_id ].push({
+					trainId: schedule[i].train_id,
+					arr: schedule[i].arr,
+					dep: schedule[i].dep
 				});
 			}
 			// free memory
@@ -193,15 +194,15 @@ function scheduleByTrain() {
 					}
 				}
 
-				output = [t, trainTypeName + ' ' + trainNumber, stationBegin.name, prettyTime(timeDep)];
+				output = [t, trainTypeName + ' ' + trainNumber, stationBegin.name, utils.prettyTime(timeDep)];
 				
 				if (stationFirstStop.b1_id != stationEnd.b1_id) {
 					output.push(stationFirstStop.name);
-					output.push(prettyTime(timeFirst));
+					output.push(utils.prettyTime(timeFirst));
 				}
 				
 				output.push(stationEnd.name);
-				output.push(prettyTime(timeArr));
+				output.push(utils.prettyTime(timeArr));
 				
 				if (train.frequency.iterations != 0) {
 					output.push("freq " + train.frequency.iterations + "@" + train.frequency.interval + "m");
@@ -222,19 +223,19 @@ function scheduleByTrain() {
 					var firstWId = trainAttributesDaysValid[ train.wId ].wId;
 					var wString = '';
 					if (firstWId)
-						wString = prettyW(validityBegin, daysValidBitsets[ firstWId ].days);
+						wString = utils.prettyW(validityBegin, daysValidBitsets[ firstWId ].days);
 					else
 						wString = 'everyday';
 					wString += '/' + stations[ route.stops[ trainAttributesDaysValid[ train.wId ].lastStop ] ].name;
 					output.push( wString );
 				} else if (train.wId != 0) {
-					output.push( prettyW(validityBegin, daysValidBitsets[ train.wId ].days) );
+					output.push( utils.prettyW(validityBegin, daysValidBitsets[ train.wId ].days) );
 				}
 				
 				
 				if (train.borderFlags) {
 					var getBorderName = function(offset) {
-						return borderStations[ trainAttributesBorderCrossings[train.atr5Id + offset].borderId ].name
+						return borderStations[ trainAttributesBorderCrossings[train.atr5Id + offset].borderId ].name;
 					};
 					if (train.borderFlags == 1)
 						output.push('bX@' + getBorderName(0));
@@ -253,6 +254,8 @@ function scheduleByTrain() {
 				schedule.push(output.join('\t'));
 			}
 			fs.writeFileSync(folder.folder + '/scheduleByTrain.tsv', schedule.join('\n'), 'binary');
+		} else {
+			console.error("Necessary files missing");
 		}
 	}
 }
@@ -263,117 +266,4 @@ function ensureFolderFor(filename) {
 		ensureFolderFor(dirname);
 		fs.mkdirSync(dirname);
 	}
-}
-
-function prettyTime(mins) {
-	if (mins == -1)
-		return -1;
-	
-	// TODO: understand and handle this bit:
-	//   for the moment we just ignore it
-	mins &= ~0x800;
-	
-	var mm = mins % 60;
-	var hh = (mins - mm) / 60;
-	return _clamp('00' + hh, 2) + ":" + _clamp('00' + mm, 2);
-}
-
-function findOneValidDay(bitset) {
-	if (bitset == 'all')
-		return 0;
-	
-	// TODO make start day flexible
-	var validityBegin = new Date(2011,11,11);
-	for (var i = 0; i < bitset.length; ++i) {
-		if (bitset[i] == 'l')
-			return new Date(validityBegin.getTime() + i * 86400000);
-	}
-	return 0;
-}
-
-function prettyW(validityBegin, bitset) {
-	if (bitset == 'all')
-		return ['immer'];
-	
-	var patterns = {
-		'Mo-Fr': '0lllll0',
-		'Mo-Sa': '0llllll',
-		'Sa-So': 'l00000l',
-		'Fr,Sa': '00000ll',
-		'Sa':    '000000l',
-		'So':    'l000000',
-		'all':   'lllllll',
-		'none':  '0000000'
-	};
-	
-	var iDate = validityBegin;
-	var i = validityBegin.getDay();
-	if (i > 0) {
-		iDate = new Date(validityBegin.getTime() + ((7-validityBegin.getDay()) * 86400000));
-	}
-	
-	var dateDescription = [];
-	
-	var lastPattern = 0;
-	
-	while (i < bitset.length) {
-		var week = bitset.substr(i, 7);
-		
-		var thisPattern = [0, 0];
-		
-		var differences = {};
-		for (var p in patterns) {
-			var pattern = patterns[p];
-			differences[p] = [];
-			
-			for (var j = 0; j < 7; ++j) {
-				if (week[j] != pattern[j]) {
-					differences[p].push(new Date(validityBegin.getTime() + (i + j) * 86400000));
-				}
-			}
-			if (differences[p].length == 0) {
-				thisPattern = [p, 0];
-				break;
-			}
-		}
-		
-		if (!thisPattern[0]) {
-			for (var p in patterns) {
-				if (differences[p].length == 1) {
-					thisPattern = [p, differences[p][0]];
-				}
-			}
-		}
-		
-		if (thisPattern[0]) {
-			if (thisPattern != lastPattern) {
-				if (thisPattern[0] == lastPattern[0]) {
-					if (thisPattern[1])
-						dateDescription.push(thisPattern[1].toDateString());
-				} else {
-					if (thisPattern[1])
-						dateDescription.push([thisPattern[0], 'not', thisPattern[1].toDateString()]);
-					else
-						dateDescription.push([thisPattern[0], 'from', (new Date(validityBegin.getTime() + i * 86400000)).toDateString()]);
-				}
-				lastPattern = thisPattern;
-			}
-		} else {
-			for (var j = 0; j < 7; ++j) {
-				if (pattern[j]) {
-					var d = new Date(validityBegin.getTime() + (i + j) * 86400000);
-					dateDescription.push([d.toDateString()]);
-				}
-			}
-			lastPattern = [0,0];
-		}
-		
-		i += 7;
-	}
-	
-	return dateDescription;
-}
-
-function _clamp(text, l) {
-	return text.substr(text.length-l);
 }
