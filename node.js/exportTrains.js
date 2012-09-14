@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var assert = require('assert');
-var planUtils = require('./schedule_utils.js');
+var utils = require('./schedule_utils.js');
 var planUtils = require('./plan_modules/plan_utils.js');
 
 var config = fs.readFileSync('config.json', 'utf8');
@@ -57,7 +57,6 @@ function scheduleByTrain() {
 			continue;
 		
 		var folder = folders[f];
-		var schedule = [];
 		if (
 			(folder.files['planb_data.json']) &&
 			(folder.files['planbz_data.json']) &&
@@ -194,7 +193,7 @@ function scheduleByTrain() {
 
 					for (var j in stationSchedules[station.b1_id]) {
 						if (stationSchedules[station.b1_id][j].trainId == t) {
-							if (s == 0) {
+							if (s === 0) {
 								if (stationSchedules[station.b1_id][j].arr == -1) {
 									timeDep = stationSchedules[station.b1_id][j].dep;
 									break;
@@ -212,15 +211,15 @@ function scheduleByTrain() {
 						}
 					}
 
-					output += _clamp('                                                           ' + station.name, 40) + '  ';
+					output += utils._clamp('                                                           ' + station.name, 40) + '  ';
 					if (timeArr != -1) {
-						output += prettyTime(timeArr);
+						output += utils.prettyTime(timeArr);
 					} else {
 						output += '     ';
 					}
 					output += ' ';
 					if (timeDep != -1) {
-						output += prettyTime(timeDep);
+						output += utils.prettyTime(timeDep);
 					} else {
 						output += '     ';
 					}
@@ -234,7 +233,7 @@ function scheduleByTrain() {
 				
 				var getProperty = function(code) {
 					return code + ' ' + propertyDescription[code].text;
-				}
+				};
 
 				if (train.atr2Flags == 0xff) {
 					output += getProperty(String.fromCharCode(train.atr2Id >> 8) + String.fromCharCode(train.atr2Id & 0xff));
@@ -261,15 +260,15 @@ function scheduleByTrain() {
 						var atr = trainAttributesDaysValid[ train.wId + i ];
 						var wString = '';
 						if (atr.wId)
-							wString = prettyW(validityBegin, daysValidBitsets[ atr.wId ].days);
+							wString = utils.prettyW(validityBegin, daysValidBitsets[ atr.wId ].days);
 						else
 							wString = 'jeden Tag';
 						wString += ' (' + getRouteSegment( atr ) + ')';
 						w.push(wString);
 					}
 					output += w.join('\n');
-				} else if (train.wId != 0) {
-					output += prettyW(validityBegin, daysValidBitsets[ train.wId ].days);
+				} else if (train.wId !== 0) {
+					output += utils.prettyW(validityBegin, daysValidBitsets[ train.wId ].days);
 				} else {
 					output += 'jeden Tag';
 				}
@@ -278,7 +277,7 @@ function scheduleByTrain() {
 				if (train.borderFlags) {
 					output += 'Grenzuebergaenge: ';
 					var getBorderName = function(offset) {
-						return borderStations[ trainAttributesBorderCrossings[train.atr5Id + offset].borderId ].name
+						return borderStations[ trainAttributesBorderCrossings[train.atr5Id + offset].borderId ].name;
 					};
 					if (train.borderFlags == 1)
 						output += getBorderName(0);

@@ -1,17 +1,6 @@
-function prettyTime(mins) {
-	if (mins == -1)
-		return -1;
-	
-	// TODO: understand and handle this bit:
-	//   for the moment we just ignore it
-	mins &= ~0x800;
-	
-	var mm = mins % 60;
-	var hh = (mins - mm) / 60;
-	return _clamp('00' + hh, 2) + ":" + _clamp('00' + mm, 2);
-}
 
-function prettyW(validityBegin, bitset) {
+
+exports.prettyW = function(validityBegin, bitset) {
 	if (bitset == 'all')
 		return ['immer'];
 	
@@ -52,7 +41,7 @@ function prettyW(validityBegin, bitset) {
 					differences[p].push(new Date(validityBegin.getTime() + (i + j) * 86400000));
 				}
 			}
-			if (differences[p].length == 0) {
+			if (differences[p].length === 0) {
 				thisPattern = [p, 0];
 				break;
 			}
@@ -93,13 +82,13 @@ function prettyW(validityBegin, bitset) {
 	}
 	
 	return dateDescription;
-}
+};
 
-function _clamp(text, l) {
+exports._clamp = function(text, l) {
 	return text.substr(text.length-l);
-}
+};
 
-function findOneValidDay(bitset) {
+exports._findOneValidDay = function(bitset) {
 	if (bitset == 'all')
 		return 0;
 	
@@ -110,4 +99,17 @@ function findOneValidDay(bitset) {
 			return new Date(validityBegin.getTime() + i * 86400000);
 	}
 	return 0;
-}
+};
+
+exports.prettyTime = function (mins) {
+	if (mins == -1)
+		return -1;
+	
+	// TODO: understand and handle this bit:
+	//   for the moment we just ignore it
+	mins &= ~0x800;
+	
+	var mm = mins % 60;
+	var hh = (mins - mm) / 60;
+	return exports._clamp('00' + hh, 2) + ":" + exports._clamp('00' + mm, 2);
+};

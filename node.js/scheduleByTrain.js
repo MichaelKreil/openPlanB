@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var planUtils = require('./schedule_utils.js');
+var utils = require('./schedule_utils.js');
 var planUtils = require('./plan_modules/plan_utils.js');
 
 var config = fs.readFileSync('config.json', 'utf8');
@@ -194,15 +194,15 @@ function scheduleByTrain() {
 					}
 				}
 
-				output = [t, trainTypeName + ' ' + trainNumber, stationBegin.name, prettyTime(timeDep)];
+				output = [t, trainTypeName + ' ' + trainNumber, stationBegin.name, utils.prettyTime(timeDep)];
 				
 				if (stationFirstStop.b1_id != stationEnd.b1_id) {
 					output.push(stationFirstStop.name);
-					output.push(prettyTime(timeFirst));
+					output.push(utils.prettyTime(timeFirst));
 				}
 				
 				output.push(stationEnd.name);
-				output.push(prettyTime(timeArr));
+				output.push(utils.prettyTime(timeArr));
 				
 				if (train.frequency.iterations != 0) {
 					output.push("freq " + train.frequency.iterations + "@" + train.frequency.interval + "m");
@@ -223,19 +223,19 @@ function scheduleByTrain() {
 					var firstWId = trainAttributesDaysValid[ train.wId ].wId;
 					var wString = '';
 					if (firstWId)
-						wString = prettyW(validityBegin, daysValidBitsets[ firstWId ].days);
+						wString = utils.prettyW(validityBegin, daysValidBitsets[ firstWId ].days);
 					else
 						wString = 'everyday';
 					wString += '/' + stations[ route.stops[ trainAttributesDaysValid[ train.wId ].lastStop ] ].name;
 					output.push( wString );
 				} else if (train.wId != 0) {
-					output.push( prettyW(validityBegin, daysValidBitsets[ train.wId ].days) );
+					output.push( utils.prettyW(validityBegin, daysValidBitsets[ train.wId ].days) );
 				}
 				
 				
 				if (train.borderFlags) {
 					var getBorderName = function(offset) {
-						return borderStations[ trainAttributesBorderCrossings[train.atr5Id + offset].borderId ].name
+						return borderStations[ trainAttributesBorderCrossings[train.atr5Id + offset].borderId ].name;
 					};
 					if (train.borderFlags == 1)
 						output.push('bX@' + getBorderName(0));
