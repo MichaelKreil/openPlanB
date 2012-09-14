@@ -48,16 +48,11 @@ exports.makeGTFS = function (data, outputFolder) {
 	for (routeID in linesVsRoutes) {
 		var entry = [];
 
-		console.log("Route: " + routeID);
 		// route_id
 		entry.push(gtfs_utils.formatInteger(parseInt(routeID,10)));
 
-		console.log(line2betr[routeID]);
 		// agency_id
 		entry.push(gtfs_utils.formatInteger(line2betr[routeID]));
-
-		console.log(linesVsRoutes[routeID]);
-		console.log(lineNames[linesVsRoutes[routeID]]);
 
 		// route_short_name
 		entry.push(gtfs_utils.formatString(lineNames[linesVsRoutes[routeID]] || "UnknownName"));
@@ -65,13 +60,9 @@ exports.makeGTFS = function (data, outputFolder) {
 		// route_long_name
 		var lineLength = routes[routeID].stops.length;
 		var lineFrom = routes[routeID].stops[0];
-		//console.log("Start: " + lineFrom);
 		var lineTo = routes[routeID].stops[lineLength-1];
-		//console.log("Stop: " + lineTo);
 		lineFrom = stations[lineFrom].name;
 		lineTo = stations[lineTo].name;
-		//console.log("Start: " + lineFrom);
-		//console.log("Stop: " + lineTo);
 
 		entry.push(gtfs_utils.formatString(lineFrom + " -> " + lineTo));
 		
