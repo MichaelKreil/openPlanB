@@ -39,7 +39,9 @@ var planModules = {
 	planvw  : require('./planvw.js'),
 	planw   : require('./planw.js'),
 	planzug : require('./planzug.js'),
-	planzz  : require('./planzz.js')
+	planzz  : require('./planzz.js'),
+	
+	dmcbhf  : require('./dmcbhf.js')
 };
 
 function getAllPlanFiles(config) {
@@ -55,7 +57,7 @@ function getAllPlanFiles(config) {
 		if (stats.isFile()) {
 			var filename = fol.split('/').pop();
 			var filetype = filename.toLowerCase();
-			if (filetype.substr(0,4) == 'plan') {
+			if ((filetype.substr(0,4) == 'plan') || (filetype.substr(0,2) == 'dm')) {
 				var use = true;
 				if (planFilter && (filetype != planFilter)) use = false;
 				if (folderFilter && (fol.indexOf(folderFilter) == -1)) use = false;
