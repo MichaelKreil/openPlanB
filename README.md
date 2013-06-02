@@ -1,7 +1,7 @@
 
 **1. Forken oder runterladen**
 
-Neben dem Decoder werden auch die entsprechenden [Hafas-Offline-Versionen](https://github.com/michomachine/openPlanB/wiki/Hafas-Offline-Versionen) benötigt. Diese einfach entpacken (z.b. mit ZIP), bis die plan-Dateien zum Vorschein kommen.
+Neben dem Decoder werden auch die entsprechenden [Hafas-Offline-Versionen](https://github.com/MichaelKreil/openPlanB/wiki/Hafas-Offline-Versionen) benötigt. Diese einfach entpacken (z.b. mit ZIP), bis die plan-Dateien zum Vorschein kommen.
 
 <br>
 
